@@ -1,0 +1,59 @@
+export type AnimalType = "SAPI" | "KAMBING";
+
+export type ResponsibilityKind = "SLAUGHTER" | "OFFAL" | "PACKING";
+
+export type WorkflowStatus =
+  | "BELUM_DITUGASKAN"
+  | "SUDAH_DITUGASKAN"
+  | "SEDANG_DIKERJAKAN"
+  | "SELESAI";
+
+export type Team = {
+  id: string;
+  name: string;
+  kind: ResponsibilityKind;
+};
+
+export type MeatIntake = {
+  id: string;
+  weightKg: number;
+  recordedAt: string;
+};
+
+export type OffalIntake = {
+  weightKg: number;
+  recordedAt: string;
+};
+
+export type Responsibility = {
+  kind: ResponsibilityKind;
+  status: WorkflowStatus;
+  teamId: string | null;
+  /** Packing only. */
+  meatIntakes: MeatIntake[];
+  offalIntake: OffalIntake | null;
+  packageCount: number | null;
+};
+
+export type Animal = {
+  id: string;
+  code: string;
+  type: AnimalType;
+  shahibul: string[];
+  responsibilities: Record<ResponsibilityKind, Responsibility>;
+};
+
+export type QurbanEvent = {
+  id: string;
+  name: string;
+  date: string;
+  location: string;
+  completed: boolean;
+};
+
+/** One board card = one animal x one responsibility. */
+export type BoardCard = {
+  animal: Animal;
+  responsibility: Responsibility;
+  team: Team | null;
+};
