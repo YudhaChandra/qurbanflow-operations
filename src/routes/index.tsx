@@ -1,8 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { LayoutDashboard } from "lucide-react";
-import { PageHeader } from "@/components/common/PageHeader";
-import { EmptyState } from "@/components/common/EmptyState";
-import { StatusBadge } from "@/components/common/StatusBadge";
+import { OperationalBoard } from "@/features/qurban/components/OperationalBoard";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -25,18 +22,5 @@ export const Route = createFileRoute("/")({
 });
 
 function BoardPage() {
-  return (
-    <>
-      <PageHeader
-        title="Operational Board"
-        description="The single screen your teams work from during the event. Every animal moves across the pipeline here."
-        actions={<StatusBadge tone="info">Awaiting workflow approval</StatusBadge>}
-      />
-      <EmptyState
-        icon={LayoutDashboard}
-        title="Board workflow not defined yet"
-        description="The pipeline stages, statuses and station handoffs need to be confirmed before this board is implemented, so nothing here is invented."
-      />
-    </>
-  );
+  return <OperationalBoard />;
 }
