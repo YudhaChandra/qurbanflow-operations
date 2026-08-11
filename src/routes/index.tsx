@@ -1,24 +1,42 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { LayoutDashboard } from "lucide-react";
+import { PageHeader } from "@/components/common/PageHeader";
+import { EmptyState } from "@/components/common/EmptyState";
+import { StatusBadge } from "@/components/common/StatusBadge";
 
-// No head() here: the home route inherits title/description/og/twitter from
-// __root.tsx, and ships no og:image so serve-time hosting can inject the
-// project's social preview (explicit og:image or latest screenshot).
 export const Route = createFileRoute("/")({
-  component: Index,
+  head: () => ({
+    meta: [
+      { title: "Operational Board — QurbanOps" },
+      {
+        name: "description",
+        content:
+          "Live operational board tracking every animal through the Qurban processing pipeline.",
+      },
+      { property: "og:title", content: "Operational Board — QurbanOps" },
+      {
+        property: "og:description",
+        content:
+          "Track every animal through the Qurban processing pipeline in real time.",
+      },
+    ],
+  }),
+  component: BoardPage,
 });
 
-// IMPORTANT: Replace this placeholder. See ./README.md for routing conventions.
-function Index() {
+function BoardPage() {
   return (
-    <div
-      className="flex min-h-screen items-center justify-center"
-      style={{ backgroundColor: "#fcfbf8" }}
-    >
-      <img
-        data-lovable-blank-page-placeholder="REMOVE_THIS"
-        src="https://cdn.gpteng.co/blank-app-v1.svg"
-        alt="Your app will live here!"
+    <>
+      <PageHeader
+        title="Operational Board"
+        description="The single screen your teams work from during the event. Every animal moves across the pipeline here."
+        actions={<StatusBadge tone="info">Awaiting workflow approval</StatusBadge>}
       />
-    </div>
+      <EmptyState
+        icon={LayoutDashboard}
+        title="Board workflow not defined yet"
+        description="The pipeline stages, statuses and station handoffs need to be confirmed before this board is implemented, so nothing here is invented."
+      />
+    </>
   );
 }
