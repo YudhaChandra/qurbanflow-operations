@@ -10,33 +10,115 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AnimalsRouteImport } from './routes/animals'
+import { Route as EventsRouteImport } from './routes/events'
+import { Route as SettingsRouteImport } from './routes/settings'
+import { Route as SummaryRouteImport } from './routes/summary'
+import { Route as TeamsRouteImport } from './routes/teams'
+import { Route as UsersRouteImport } from './routes/users'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AnimalsRoute = AnimalsRouteImport.update({
+  id: '/animals',
+  path: '/animals',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EventsRoute = EventsRouteImport.update({
+  id: '/events',
+  path: '/events',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SettingsRoute = SettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SummaryRoute = SummaryRouteImport.update({
+  id: '/summary',
+  path: '/summary',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TeamsRoute = TeamsRouteImport.update({
+  id: '/teams',
+  path: '/teams',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const UsersRoute = UsersRouteImport.update({
+  id: '/users',
+  path: '/users',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/animals': typeof AnimalsRoute
+  '/events': typeof EventsRoute
+  '/settings': typeof SettingsRoute
+  '/summary': typeof SummaryRoute
+  '/teams': typeof TeamsRoute
+  '/users': typeof UsersRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/animals': typeof AnimalsRoute
+  '/events': typeof EventsRoute
+  '/settings': typeof SettingsRoute
+  '/summary': typeof SummaryRoute
+  '/teams': typeof TeamsRoute
+  '/users': typeof UsersRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/animals': typeof AnimalsRoute
+  '/events': typeof EventsRoute
+  '/settings': typeof SettingsRoute
+  '/summary': typeof SummaryRoute
+  '/teams': typeof TeamsRoute
+  '/users': typeof UsersRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/animals'
+    | '/events'
+    | '/settings'
+    | '/summary'
+    | '/teams'
+    | '/users'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/animals'
+    | '/events'
+    | '/settings'
+    | '/summary'
+    | '/teams'
+    | '/users'
+  id:
+    | '__root__'
+    | '/'
+    | '/animals'
+    | '/events'
+    | '/settings'
+    | '/summary'
+    | '/teams'
+    | '/users'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AnimalsRoute: typeof AnimalsRoute
+  EventsRoute: typeof EventsRoute
+  SettingsRoute: typeof SettingsRoute
+  SummaryRoute: typeof SummaryRoute
+  TeamsRoute: typeof TeamsRoute
+  UsersRoute: typeof UsersRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,12 +130,70 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/animals': {
+      id: '/animals'
+      path: '/animals'
+      fullPath: '/animals'
+      preLoaderRoute: typeof AnimalsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/events': {
+      id: '/events'
+      path: '/events'
+      fullPath: '/events'
+      preLoaderRoute: typeof EventsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/settings': {
+      id: '/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof SettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/summary': {
+      id: '/summary'
+      path: '/summary'
+      fullPath: '/summary'
+      preLoaderRoute: typeof SummaryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/teams': {
+      id: '/teams'
+      path: '/teams'
+      fullPath: '/teams'
+      preLoaderRoute: typeof TeamsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/users': {
+      id: '/users'
+      path: '/users'
+      fullPath: '/users'
+      preLoaderRoute: typeof UsersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AnimalsRoute: AnimalsRoute,
+  EventsRoute: EventsRoute,
+  SettingsRoute: SettingsRoute,
+  SummaryRoute: SummaryRoute,
+  TeamsRoute: TeamsRoute,
+  UsersRoute: UsersRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
