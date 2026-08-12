@@ -41,9 +41,9 @@ const seeds: Seed[] = [
     type: "SAPI",
     shahibul: ["Keluarga Hidayat", "Pak Sutarno", "Ibu Marlina", "Andi Prasetyo", "Nurul Hasanah", "Fajar Nugroho", "Hj. Aminah"],
     state: {
-      SLAUGHTER: { status: "SELESAI", teamId: "team-jagal-a" },
-      OFFAL: { status: "SEDANG_DIKERJAKAN", teamId: "team-jeroan-b" },
-      PACKING: { status: "SUDAH_DITUGASKAN", teamId: "team-packing-b" },
+      SLAUGHTER: { status: "SELESAI", teamId: "team-jagal-1" },
+      OFFAL: { status: "SEDANG_DIKERJAKAN", teamId: "team-jeroan-2" },
+      PACKING: { status: "SUDAH_DITUGASKAN", teamId: "team-packing-2" },
     },
   },
   {
@@ -51,8 +51,8 @@ const seeds: Seed[] = [
     type: "SAPI",
     shahibul: ["RT 04 Kelurahan Cibaduyut", "Keluarga Wijaya", "Sri Rahayu", "Iwan Setiawan", "Ustadzah Laila", "Toko Berkah", "Pak Darmanto"],
     state: {
-      SLAUGHTER: { status: "SEDANG_DIKERJAKAN", teamId: "team-jagal-b" },
-      OFFAL: { status: "SUDAH_DITUGASKAN", teamId: "team-jeroan-a" },
+      SLAUGHTER: { status: "SEDANG_DIKERJAKAN", teamId: "team-jagal-2" },
+      OFFAL: { status: "SUDAH_DITUGASKAN", teamId: "team-jeroan-1" },
       PACKING: { status: "BELUM_DITUGASKAN" },
     },
   },
@@ -61,7 +61,7 @@ const seeds: Seed[] = [
     type: "SAPI",
     shahibul: ["Keluarga Pratama", "Bapak Suryadi", "Ibu Kartini", "Rizky Maulana", "Hendra Gunawan", "Siti Aisyah", "Koperasi Sejahtera"],
     state: {
-      SLAUGHTER: { status: "SUDAH_DITUGASKAN", teamId: "team-jagal-b" },
+      SLAUGHTER: { status: "SUDAH_DITUGASKAN", teamId: "team-jagal-2" },
       OFFAL: { status: "BELUM_DITUGASKAN" },
       PACKING: { status: "BELUM_DITUGASKAN" },
     },
@@ -71,9 +71,9 @@ const seeds: Seed[] = [
     type: "KAMBING",
     shahibul: ["Dr. Imam Subekti"],
     state: {
-      SLAUGHTER: { status: "SELESAI", teamId: "team-jagal-a" },
-      OFFAL: { status: "SELESAI", teamId: "team-jeroan-a" },
-      PACKING: { status: "SELESAI", teamId: "team-packing-a" },
+      SLAUGHTER: { status: "SELESAI", teamId: "team-jagal-1" },
+      OFFAL: { status: "SELESAI", teamId: "team-jeroan-1" },
+      PACKING: { status: "SELESAI", teamId: "team-packing-1" },
     },
   },
   {
@@ -81,8 +81,8 @@ const seeds: Seed[] = [
     type: "KAMBING",
     shahibul: ["Ibu Ratna Dewi"],
     state: {
-      SLAUGHTER: { status: "SELESAI", teamId: "team-jagal-b" },
-      OFFAL: { status: "SUDAH_DITUGASKAN", teamId: "team-jeroan-b" },
+      SLAUGHTER: { status: "SELESAI", teamId: "team-jagal-2" },
+      OFFAL: { status: "SUDAH_DITUGASKAN", teamId: "team-jeroan-2" },
       PACKING: { status: "BELUM_DITUGASKAN" },
     },
   },
@@ -91,7 +91,7 @@ const seeds: Seed[] = [
     type: "KAMBING",
     shahibul: ["Keluarga Alm. Sukirman"],
     state: {
-      SLAUGHTER: { status: "SEDANG_DIKERJAKAN", teamId: "team-jagal-a" },
+      SLAUGHTER: { status: "SEDANG_DIKERJAKAN", teamId: "team-jagal-1" },
       OFFAL: { status: "BELUM_DITUGASKAN" },
       PACKING: { status: "BELUM_DITUGASKAN" },
     },
