@@ -8,6 +8,7 @@ import {
 } from "react";
 import type {
   Animal,
+  AnimalType,
   QurbanEvent,
   Responsibility,
   ResponsibilityKind,
@@ -16,6 +17,7 @@ import type {
 import { createMockAnimals, mockEvent, mockTeams } from "./mock-data";
 import { RESPONSIBILITY_ORDER } from "./constants";
 import { canComplete } from "./workflow";
+import { nextAnimalCode } from "./identifier";
 
 type PackingRecord =
   | { type: "MEAT"; weightKg: number }
@@ -27,6 +29,8 @@ type QurbanContextValue = {
   animals: Animal[];
   teams: Team[];
   teamsFor: (kind: ResponsibilityKind) => Team[];
+  addAnimal: (type: AnimalType) => void;
+  updateAnimalType: (animalId: string, type: AnimalType) => void;
   assignTeam: (animalId: string, kind: ResponsibilityKind, teamId: string) => void;
   startWork: (animalId: string, kind: ResponsibilityKind) => void;
   completeWork: (animalId: string, kind: ResponsibilityKind) => void;
