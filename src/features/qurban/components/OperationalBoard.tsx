@@ -15,26 +15,21 @@ import {
 import type { BoardCard as BoardCardModel, ResponsibilityKind } from "../types";
 import { BoardColumn } from "./BoardColumn";
 
-type Filter = ResponsibilityKind | "ALL";
-
 export function OperationalBoard() {
   const { event, animals, teams, outstandingResponsibilities, completeEvent } =
     useQurban();
-  const [filter, setFilter] = useState<Filter>("ALL");
+  const [activeKind, setActiveKind] = useState<ResponsibilityKind>("SLAUGHTER");
 
   const cards = useMemo<BoardCardModel[]>(() => {
-    const kinds = filter === "ALL" ? RESPONSIBILITY_ORDER : [filter];
-    return animals.flatMap((animal) =>
-      kinds.map((kind) => {
-        const responsibility = animal.responsibilities[kind];
-        return {
-          animal,
-          responsibility,
-          team: teams.find((team) => team.id === responsibility.teamId) ?? null,
-        };
-      }),
-    );
-  }, [animals, teams, filter]);
+    return animals.map((animal) => {
+      const responsibility = animal.responsibilities[activeKind];
+      return {
+        animal,
+        responsibility,
+        team: teams.find((team) => team.id === responsibility.teamId) ?? null,
+      };
+    });
+  }, [animals, teams, activeKind]);
 
   const total = cards.length;
   const done = cards.filter((card) => card.responsibility.status === "SELESAI").length;
@@ -68,9 +63,11 @@ export function OperationalBoard() {
       />
 
       <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 pb-4 sm:flex sm:justify-between">
-        <Tabs value={filter} onValueChange={(value) => setFilter(value as Filter)}>
+        <Tabs
+          value={activeKind}
+          onValueChange={(value) => setActiveKind(value as ResponsibilityKind)}
+        >
           <TabsList>
-            <TabsTrigger value="ALL">All</TabsTrigger>
             {RESPONSIBILITY_ORDER.map((kind) => (
               <TabsTrigger key={kind} value={kind} title={RESPONSIBILITY_LABEL[kind]}>
                 {RESPONSIBILITY_SHORT[kind]}
