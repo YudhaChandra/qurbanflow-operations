@@ -72,6 +72,39 @@ export function QurbanProvider({ children }: { children: ReactNode }) {
     [],
   );
 
+  const addAnimal = useCallback((type: AnimalType) => {
+    setAnimals((current) => {
+      const code = nextAnimalCode(current, type);
+      const id = `animal-${Date.now()}`;
+      const responsibilities = {} as Animal["responsibilities"];
+      for (const kind of RESPONSIBILITY_ORDER) {
+        responsibilities[kind] = {
+          kind,
+          status: "BELUM_DITUGASKAN",
+          teamId: null,
+          meatIntakes: [],
+          offalIntake: null,
+          packageCount: null,
+        };
+      }
+      return [...current, { id, code, type, shahibul: [], responsibilities }];
+    });
+  }, []);
+
+  const updateAnimalType = useCallback((animalId: string, type: AnimalType) => {
+    setAnimals((current) =>
+      current.map((animal) => {
+        if (animal.id !== animalId || animal.type === type) return animal;
+        return {
+          ...animal,
+          type,
+          code: nextAnimalCode(current, type, animalId),
+          shahibul: type === "KAMBING" ? animal.shahibul.slice(0, 1) : animal.shahibul,
+        };
+      }),
+    );
+  }, []);
+
   const assignTeam = useCallback(
     (animalId: string, kind: ResponsibilityKind, teamId: string) =>
       update(animalId, kind, (responsibility) =>
@@ -166,6 +199,8 @@ export function QurbanProvider({ children }: { children: ReactNode }) {
       animals,
       teams: mockTeams,
       teamsFor,
+      addAnimal,
+      updateAnimalType,
       assignTeam,
       startWork,
       completeWork,
@@ -177,6 +212,8 @@ export function QurbanProvider({ children }: { children: ReactNode }) {
       event,
       animals,
       teamsFor,
+      addAnimal,
+      updateAnimalType,
       assignTeam,
       startWork,
       completeWork,
