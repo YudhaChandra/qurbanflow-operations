@@ -1,5 +1,10 @@
-import type { ResponsibilityKind, WorkflowStatus } from "./types";
+import type { AnimalType, ResponsibilityKind, WorkflowStatus } from "./types";
 import type { StatusTone } from "@/components/common/StatusBadge";
+
+export const ANIMAL_TYPE_LABEL: Record<AnimalType, string> = {
+  SAPI: "Sapi",
+  KAMBING: "Kambing",
+};
 
 export const WORKFLOW_ORDER: WorkflowStatus[] = [
   "BELUM_DITUGASKAN",
