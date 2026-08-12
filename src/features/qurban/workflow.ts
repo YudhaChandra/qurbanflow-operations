@@ -1,4 +1,17 @@
-import type { Responsibility, WorkflowStatus } from "./types";
+import type { Animal, Responsibility, WorkflowStatus } from "./types";
+import { RESPONSIBILITY_ORDER } from "./constants";
+
+/** Aggregated operational status of one animal across all responsibilities. */
+export function animalStatus(animal: Animal): WorkflowStatus {
+  const statuses = RESPONSIBILITY_ORDER.map(
+    (kind) => animal.responsibilities[kind].status,
+  );
+  if (statuses.every((status) => status === "SELESAI")) return "SELESAI";
+  if (statuses.some((status) => status === "SEDANG_DIKERJAKAN")) return "SEDANG_DIKERJAKAN";
+  if (statuses.some((status) => status === "SUDAH_DITUGASKAN" || status === "SELESAI"))
+    return "SUDAH_DITUGASKAN";
+  return "BELUM_DITUGASKAN";
+}
 
 export type WorkflowAction = "ASSIGN" | "START" | "COMPLETE";
 
