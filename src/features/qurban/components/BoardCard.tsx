@@ -35,7 +35,7 @@ export function BoardCard({ card }: { card: BoardCardModel }) {
     <article className="rounded-lg border border-border bg-card p-3 shadow-subtle transition-colors hover:border-ring/40">
       <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-2">
         <div className="min-w-0">
-          <h3 className="truncate font-mono text-lg font-bold leading-tight text-foreground">
+          <h3 className="font-mono text-base font-bold leading-tight text-foreground">
             {animal.code}
           </h3>
           <p className="truncate text-xs text-muted-foreground">
