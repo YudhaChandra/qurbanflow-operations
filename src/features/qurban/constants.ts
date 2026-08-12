@@ -29,8 +29,8 @@ export const RESPONSIBILITY_ORDER: ResponsibilityKind[] = [
 ];
 
 export const RESPONSIBILITY_LABEL: Record<ResponsibilityKind, string> = {
-  SLAUGHTER: "Slaughter (Jagal)",
-  OFFAL: "Offal Cleaning (Jeroan)",
+  SLAUGHTER: "Jagal",
+  OFFAL: "Jeroan",
   PACKING: "Packing",
 };
 

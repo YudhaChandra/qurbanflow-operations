@@ -41,17 +41,17 @@ export function AssignTeamDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Assign team</DialogTitle>
+          <DialogTitle>Tugaskan Tim</DialogTitle>
           <DialogDescription>
             {animal.code} — {RESPONSIBILITY_LABEL[kind]}
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-2">
-          <Label htmlFor="team">Operational team</Label>
+          <Label htmlFor="team">Tim operasional</Label>
           <Select value={teamId} onValueChange={setTeamId}>
             <SelectTrigger id="team">
-              <SelectValue placeholder="Select a team" />
+              <SelectValue placeholder="Pilih tim" />
             </SelectTrigger>
             <SelectContent>
               {teams.map((team) => (
@@ -65,21 +65,21 @@ export function AssignTeamDialog({
 
         <DialogFooter>
           <Button variant="ghost" onClick={() => onOpenChange(false)}>
-            Cancel
+            Batal
           </Button>
           <Button
             disabled={!teamId}
             onClick={() => {
               assignTeam(animal.id, kind, teamId);
               onOpenChange(false);
-              toast.success(`${animal.code} assigned`, {
+              toast.success(`${animal.code} ditugaskan`, {
                 description: `${RESPONSIBILITY_LABEL[kind]} → ${
                   teams.find((team) => team.id === teamId)?.name ?? ""
                 }`,
               });
             }}
           >
-            Assign
+            Tugaskan
           </Button>
         </DialogFooter>
       </DialogContent>

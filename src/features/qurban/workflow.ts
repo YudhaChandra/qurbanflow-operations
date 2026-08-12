@@ -30,9 +30,9 @@ export function primaryAction(responsibility: Responsibility): WorkflowAction | 
 }
 
 export const ACTION_LABEL: Record<WorkflowAction, string> = {
-  ASSIGN: "Assign team",
-  START: "Start work",
-  COMPLETE: "Complete",
+  ASSIGN: "Tugaskan tim",
+  START: "Mulai",
+  COMPLETE: "Selesaikan",
 };
 
 /**
@@ -41,9 +41,9 @@ export const ACTION_LABEL: Record<WorkflowAction, string> = {
  */
 export function packingBlockers(responsibility: Responsibility): string[] {
   const blockers: string[] = [];
-  if (responsibility.meatIntakes.length === 0) blockers.push("At least one meat intake record");
-  if (!responsibility.offalIntake) blockers.push("Offal intake record");
-  if (responsibility.packageCount === null) blockers.push("Final package count");
+  if (responsibility.meatIntakes.length === 0) blockers.push("Minimal satu catatan timbangan daging");
+  if (!responsibility.offalIntake) blockers.push("Catatan timbangan jeroan");
+  if (responsibility.packageCount === null) blockers.push("Jumlah paket akhir");
   return blockers;
 }
 
