@@ -30,9 +30,9 @@ export function primaryAction(responsibility: Responsibility): WorkflowAction | 
 }
 
 export const ACTION_LABEL: Record<WorkflowAction, string> = {
-  ASSIGN: "Assign team",
-  START: "Start work",
-  COMPLETE: "Complete",
+  ASSIGN: "Tugaskan tim",
+  START: "Mulai",
+  COMPLETE: "Selesaikan",
 };
 
 /**

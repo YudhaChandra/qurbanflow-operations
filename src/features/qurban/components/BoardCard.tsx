@@ -22,12 +22,12 @@ export function BoardCard({ card }: { card: BoardCardModel }) {
     if (action === "ASSIGN") return setAssignOpen(true);
     if (action === "START") {
       startWork(animal.id, responsibility.kind);
-      return toast.success(`${animal.code} · ${RESPONSIBILITY_SHORT[responsibility.kind]} started`);
+      return toast.success(`${animal.code} · ${RESPONSIBILITY_SHORT[responsibility.kind]} dimulai`);
     }
     if (action === "COMPLETE") {
       if (isPacking) return setPackingOpen(true);
       completeWork(animal.id, responsibility.kind);
-      toast.success(`${animal.code} · ${RESPONSIBILITY_SHORT[responsibility.kind]} completed`);
+      toast.success(`${animal.code} · ${RESPONSIBILITY_SHORT[responsibility.kind]} selesai`);
     }
   };
 
@@ -35,7 +35,7 @@ export function BoardCard({ card }: { card: BoardCardModel }) {
     <article className="rounded-lg border border-border bg-card p-3 shadow-subtle transition-colors hover:border-ring/40">
       <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-2">
         <div className="min-w-0">
-          <h3 className="truncate font-mono text-sm font-medium text-foreground">
+          <h3 className="truncate font-mono text-lg font-bold leading-tight text-foreground">
             {animal.code}
           </h3>
           <p className="truncate text-xs text-muted-foreground">
@@ -49,7 +49,7 @@ export function BoardCard({ card }: { card: BoardCardModel }) {
 
       <div className="mt-3 flex items-center gap-1.5 text-xs text-muted-foreground">
         <Users className="size-3.5 shrink-0" aria-hidden />
-        <span className="truncate">{team ? team.name : "No team assigned"}</span>
+        <span className="truncate">{team ? team.name : "Belum ada tim"}</span>
       </div>
 
       {isPacking && responsibility.status !== "BELUM_DITUGASKAN" ? (
@@ -73,7 +73,7 @@ export function BoardCard({ card }: { card: BoardCardModel }) {
           className="mt-3 w-full justify-between"
           onClick={handleAction}
         >
-          {isPacking && action === "COMPLETE" ? "Open packing" : ACTION_LABEL[action]}
+          {isPacking && action === "COMPLETE" ? "Buka packing" : ACTION_LABEL[action]}
           {isPacking && action === "COMPLETE" ? (
             <PackageCheck className="size-4" />
           ) : (

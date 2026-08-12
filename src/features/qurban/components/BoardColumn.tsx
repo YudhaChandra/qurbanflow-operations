@@ -19,7 +19,7 @@ export function BoardColumn({
       <div className="flex flex-col gap-2 p-2">
         {cards.length === 0 ? (
           <p className="px-1 py-6 text-center text-xs text-muted-foreground">
-            Nothing here
+            Kosong
           </p>
         ) : (
           cards.map((card) => (

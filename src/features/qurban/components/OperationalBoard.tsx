@@ -41,22 +41,22 @@ export function OperationalBoard() {
         description={`${event.name} · ${event.location}`}
         actions={
           event.completed ? (
-            <StatusBadge tone="success">Event completed</StatusBadge>
+            <StatusBadge tone="success">Acara selesai</StatusBadge>
           ) : (
             <Button
               disabled={outstandingResponsibilities > 0}
               onClick={() => {
                 completeEvent();
-                toast.success("Event completed");
+                toast.success("Acara selesai");
               }}
               title={
                 outstandingResponsibilities > 0
-                  ? `${outstandingResponsibilities} responsibilities still open`
+                  ? `${outstandingResponsibilities} tanggung jawab masih terbuka`
                   : undefined
               }
             >
               <CheckCircle2 className="size-4" />
-              Complete event
+              Selesaikan acara
             </Button>
           )
         }

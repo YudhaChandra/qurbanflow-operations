@@ -45,16 +45,16 @@ export function PackingSheet({
         <SheetHeader>
           <SheetTitle>Packing — {animal.code}</SheetTitle>
           <SheetDescription>
-            Record intake as it arrives, then set the final package count to complete.
+            Catat timbangan daging dan jeroan saat datang, lalu isi jumlah paket akhir untuk menyelesaikan.
           </SheetDescription>
         </SheetHeader>
 
         <div className="flex flex-col gap-6 px-4 pb-6">
           <section className="space-y-3">
             <div className="flex items-center justify-between">
-              <h3 className="text-sm font-medium">Meat intake</h3>
+              <h3 className="text-sm font-medium">Timbangan daging</h3>
               <span className="text-xs text-muted-foreground">
-                {responsibility.meatIntakes.length} records · {totalMeat.toFixed(1)} kg
+                {responsibility.meatIntakes.length} catatan · {totalMeat.toFixed(1)} kg
               </span>
             </div>
             <ul className="space-y-1">
@@ -70,7 +70,7 @@ export function PackingSheet({
             </ul>
             <div className="flex items-end gap-2">
               <div className="min-w-0 flex-1 space-y-1.5">
-                <Label htmlFor="meat">Add weight (kg)</Label>
+                <Label htmlFor="meat">Tambah timbangan (kg)</Label>
                 <Input
                   id="meat"
                   inputMode="decimal"
@@ -87,7 +87,7 @@ export function PackingSheet({
                   setMeat("");
                 }}
               >
-                <Plus className="size-4" /> Add
+                <Plus className="size-4" /> Tambah
               </Button>
             </div>
           </section>
@@ -95,7 +95,7 @@ export function PackingSheet({
           <Separator />
 
           <section className="space-y-3">
-            <h3 className="text-sm font-medium">Offal intake</h3>
+            <h3 className="text-sm font-medium">Timbangan jeroan</h3>
             {responsibility.offalIntake ? (
               <div className="flex items-center justify-between rounded-md border border-border bg-surface px-3 py-1.5 text-xs">
                 <span className="font-mono">
@@ -108,7 +108,7 @@ export function PackingSheet({
             ) : (
               <div className="flex items-end gap-2">
                 <div className="min-w-0 flex-1 space-y-1.5">
-                  <Label htmlFor="offal">Weight (kg)</Label>
+                  <Label htmlFor="offal">Timbangan (kg)</Label>
                   <Input
                     id="offal"
                     inputMode="decimal"
@@ -125,22 +125,22 @@ export function PackingSheet({
                     setOffal("");
                   }}
                 >
-                  Record
+                  Catat
                 </Button>
               </div>
             )}
             <p className="text-xs text-muted-foreground">
-              One offal record per animal.
+              Satu catatan timbangan jeroan per hewan.
             </p>
           </section>
 
           <Separator />
 
           <section className="space-y-3">
-            <h3 className="text-sm font-medium">Final package count</h3>
+            <h3 className="text-sm font-medium">Jumlah paket akhir</h3>
             <div className="flex items-end gap-2">
               <div className="min-w-0 flex-1 space-y-1.5">
-                <Label htmlFor="packages">Packages</Label>
+                <Label htmlFor="packages">Paket</Label>
                 <Input
                   id="packages"
                   inputMode="numeric"
@@ -159,7 +159,7 @@ export function PackingSheet({
                   })
                 }
               >
-                Save
+                Simpan
               </Button>
             </div>
           </section>
@@ -167,7 +167,7 @@ export function PackingSheet({
           <div className="space-y-2 rounded-lg border border-border bg-surface p-3">
             {blockers.length > 0 ? (
               <>
-                <p className="text-xs font-medium">Required before completing</p>
+                <p className="text-xs font-medium">Wajib sebelum menyelesaikan</p>
                 <ul className="list-inside list-disc text-xs text-muted-foreground">
                   {blockers.map((blocker) => (
                     <li key={blocker}>{blocker}</li>
@@ -176,7 +176,7 @@ export function PackingSheet({
               </>
             ) : (
               <p className="text-xs text-muted-foreground">
-                All packing records complete.
+                Semua catatan packing lengkap.
               </p>
             )}
             <Button
@@ -185,10 +185,10 @@ export function PackingSheet({
               onClick={() => {
                 completeWork(animal.id, "PACKING");
                 onOpenChange(false);
-                toast.success(`${animal.code} packing complete`);
+                toast.success(`${animal.code} packing selesai`);
               }}
             >
-              Complete packing
+              Selesaikan packing
             </Button>
           </div>
         </div>
