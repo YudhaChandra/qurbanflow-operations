@@ -37,7 +37,7 @@ export function OperationalBoard() {
   return (
     <>
       <PageHeader
-        title="Operational Board"
+        title="Papan Operasional"
         description={`${event.name} · ${event.location}`}
         actions={
           event.completed ? (

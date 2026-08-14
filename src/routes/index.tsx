@@ -4,13 +4,13 @@ import { OperationalBoard } from "@/features/qurban/components/OperationalBoard"
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Operational Board — QurbanOps" },
+      { title: "Papan Operasional — QurbanOps" },
       {
         name: "description",
         content:
           "Live operational board tracking every animal through the Qurban processing pipeline.",
       },
-      { property: "og:title", content: "Operational Board — QurbanOps" },
+      { property: "og:title", content: "Papan Operasional — QurbanOps" },
       {
         property: "og:description",
         content:
