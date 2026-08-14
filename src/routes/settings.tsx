@@ -6,12 +6,12 @@ import { EmptyState } from "@/components/common/EmptyState";
 export const Route = createFileRoute("/settings")({
   head: () => ({
     meta: [
-      { title: "Settings — QurbanOps" },
+      { title: "Pengaturan — QurbanOps" },
       {
         name: "description",
         content: "Workspace and operational preferences for your Qurban committee.",
       },
-      { property: "og:title", content: "Settings — QurbanOps" },
+      { property: "og:title", content: "Pengaturan — QurbanOps" },
       {
         property: "og:description",
         content: "Workspace and operational preferences for your committee.",
@@ -25,7 +25,7 @@ function SettingsPage() {
   return (
     <>
       <PageHeader
-        title="Settings"
+        title="Pengaturan"
         description="Preferences that apply across the workspace."
       />
       <EmptyState

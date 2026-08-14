@@ -6,13 +6,13 @@ import { EmptyState } from "@/components/common/EmptyState";
 export const Route = createFileRoute("/teams")({
   head: () => ({
     meta: [
-      { title: "Team Management — QurbanOps" },
+      { title: "Tim Operasional — QurbanOps" },
       {
         name: "description",
         content:
           "Organise operational teams and their station assignments for the event.",
       },
-      { property: "og:title", content: "Team Management — QurbanOps" },
+      { property: "og:title", content: "Tim Operasional — QurbanOps" },
       {
         property: "og:description",
         content: "Organise operational teams and their station assignments.",
@@ -26,7 +26,7 @@ function TeamsPage() {
   return (
     <>
       <PageHeader
-        title="Team Management"
+        title="Tim Operasional"
         description="Operational teams, their members and the stations they are responsible for."
       />
       <EmptyState

@@ -6,12 +6,12 @@ import { EmptyState } from "@/components/common/EmptyState";
 export const Route = createFileRoute("/events")({
   head: () => ({
     meta: [
-      { title: "Event Management — QurbanOps" },
+      { title: "Event — QurbanOps" },
       {
         name: "description",
         content: "Create and manage Qurban events, schedules and active operations.",
       },
-      { property: "og:title", content: "Event Management — QurbanOps" },
+      { property: "og:title", content: "Event — QurbanOps" },
       {
         property: "og:description",
         content: "Create and manage Qurban events and active operations.",
@@ -25,7 +25,7 @@ function EventsPage() {
   return (
     <>
       <PageHeader
-        title="Event Management"
+        title="Event"
         description="Qurban events with their dates, locations and operational status."
       />
       <EmptyState
