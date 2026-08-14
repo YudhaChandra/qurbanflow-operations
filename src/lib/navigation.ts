@@ -23,22 +23,22 @@ export type NavGroup = {
 
 export const navigation: NavGroup[] = [
   {
-    label: "Operations",
+    label: "Operasional",
     items: [
       {
-        label: "Operational Board",
+        label: "Papan Operasional",
         to: "/",
         icon: LayoutDashboard,
         description: "Live processing pipeline for the active event",
       },
       {
-        label: "Animals",
+        label: "Hewan",
         to: "/animals",
         icon: Beef,
         description: "Registered animals and their processing state",
       },
       {
-        label: "Teams",
+        label: "Tim Operasional",
         to: "/teams",
         icon: Users,
         description: "Operational teams and station assignments",
@@ -46,16 +46,16 @@ export const navigation: NavGroup[] = [
     ],
   },
   {
-    label: "Events",
+    label: "Event",
     items: [
       {
-        label: "Events",
+        label: "Event",
         to: "/events",
         icon: CalendarDays,
         description: "Qurban events, schedules and stations",
       },
       {
-        label: "Event Summary",
+        label: "Ringkasan Event",
         to: "/summary",
         icon: ClipboardList,
         description: "Completion status of a finished event",
@@ -63,16 +63,16 @@ export const navigation: NavGroup[] = [
     ],
   },
   {
-    label: "Administration",
+    label: "Administrasi",
     items: [
       {
-        label: "Users & Access",
+        label: "Pengguna & Hak Akses",
         to: "/users",
         icon: ShieldCheck,
         description: "Committee members, roles and permissions",
       },
       {
-        label: "Settings",
+        label: "Pengaturan",
         to: "/settings",
         icon: Settings,
         description: "Workspace and operational preferences",

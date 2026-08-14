@@ -6,13 +6,13 @@ import { EmptyState } from "@/components/common/EmptyState";
 export const Route = createFileRoute("/users")({
   head: () => ({
     meta: [
-      { title: "Users & Access — QurbanOps" },
+      { title: "Pengguna & Hak Akses — QurbanOps" },
       {
         name: "description",
         content:
           "Manage committee members, roles and access levels for Qurban operations.",
       },
-      { property: "og:title", content: "Users & Access — QurbanOps" },
+      { property: "og:title", content: "Pengguna & Hak Akses — QurbanOps" },
       {
         property: "og:description",
         content: "Manage committee members, roles and access levels.",
@@ -26,7 +26,7 @@ function UsersPage() {
   return (
     <>
       <PageHeader
-        title="Users & Access"
+        title="Pengguna & Hak Akses"
         description="Super Admin, Supervisor and Operational Team accounts with their permissions."
       />
       <EmptyState

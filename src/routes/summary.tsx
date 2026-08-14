@@ -6,12 +6,12 @@ import { EmptyState } from "@/components/common/EmptyState";
 export const Route = createFileRoute("/summary")({
   head: () => ({
     meta: [
-      { title: "Event Summary — QurbanOps" },
+      { title: "Ringkasan Event — QurbanOps" },
       {
         name: "description",
         content: "Completion overview of a Qurban event once operations are finished.",
       },
-      { property: "og:title", content: "Event Summary — QurbanOps" },
+      { property: "og:title", content: "Ringkasan Event — QurbanOps" },
       {
         property: "og:description",
         content: "Completion overview of a Qurban event after operations finish.",
@@ -25,7 +25,7 @@ function SummaryPage() {
   return (
     <>
       <PageHeader
-        title="Event Summary"
+        title="Ringkasan Event"
         description="What was completed, what remains and how the event closed out."
       />
       <EmptyState

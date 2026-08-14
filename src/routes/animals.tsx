@@ -27,17 +27,14 @@ import type { Animal } from "@/features/qurban/types";
 export const Route = createFileRoute("/animals")({
   head: () => ({
     meta: [
-      { title: "Animal Management — QurbanOps" },
+      { title: "Hewan — QurbanOps" },
       {
         name: "description",
         content:
           "Register and track every Qurban animal, its owners and its processing state.",
       },
-      { property: "og:title", content: "Animal Management — QurbanOps" },
-      {
-        property: "og:description",
-        content: "Register and track every Qurban animal and its processing state.",
-      },
+      { property: "og:title", content: "Hewan — QurbanOps" },
+      { property: "og:description", content: "Register and track every Qurban animal and its processing state." },
     ],
   }),
   component: AnimalsPage,
@@ -51,7 +48,7 @@ function AnimalsPage() {
   return (
     <>
       <PageHeader
-        title="Manajemen Hewan"
+        title="Hewan"
         description={`Daftar hewan pada ${event.name}. Identitas hewan dibuat otomatis per jenis dan diulang setiap acara.`}
         actions={
           <Button onClick={() => setAddOpen(true)}>
