@@ -124,7 +124,11 @@ export function createMockAnimals(): Animal[] {
       id: `animal-${index + 1}`,
       code: seed.code,
       type: seed.type,
-      shahibul: seed.shahibul,
+      shahibul: seed.shahibul.map((name, i) => ({
+        id: `animal-${index + 1}-shahibul-${i + 1}`,
+        name,
+        phone: i === 0 ? "0812-3456-7890" : undefined,
+      })),
       responsibilities: {} as Animal["responsibilities"],
     };
 
