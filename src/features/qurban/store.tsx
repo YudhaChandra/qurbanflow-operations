@@ -12,10 +12,11 @@ import type {
   QurbanEvent,
   Responsibility,
   ResponsibilityKind,
+  Shahibul,
   Team,
 } from "./types";
 import { createMockAnimals, mockEvent, mockTeams } from "./mock-data";
-import { RESPONSIBILITY_ORDER } from "./constants";
+import { RESPONSIBILITY_ORDER, SHAHIBUL_LIMIT } from "./constants";
 import { canComplete } from "./workflow";
 import { nextAnimalCode } from "./identifier";
 
@@ -31,6 +32,7 @@ type QurbanContextValue = {
   teamsFor: (kind: ResponsibilityKind) => Team[];
   addAnimal: (type: AnimalType) => void;
   updateAnimalType: (animalId: string, type: AnimalType) => void;
+  addShahibul: (animalId: string, input: Omit<Shahibul, "id">) => void;
   assignTeam: (animalId: string, kind: ResponsibilityKind, teamId: string) => void;
   startWork: (animalId: string, kind: ResponsibilityKind) => void;
   completeWork: (animalId: string, kind: ResponsibilityKind) => void;
@@ -99,11 +101,30 @@ export function QurbanProvider({ children }: { children: ReactNode }) {
           ...animal,
           type,
           code: nextAnimalCode(current, type, animalId),
-          shahibul: type === "KAMBING" ? animal.shahibul.slice(0, 1) : animal.shahibul,
+          shahibul: animal.shahibul.slice(0, SHAHIBUL_LIMIT[type].max),
         };
       }),
     );
   }, []);
+
+  const addShahibul = useCallback(
+    (animalId: string, input: Omit<Shahibul, "id">) => {
+      setAnimals((current) =>
+        current.map((animal) => {
+          if (animal.id !== animalId) return animal;
+          if (animal.shahibul.length >= SHAHIBUL_LIMIT[animal.type].max) return animal;
+          return {
+            ...animal,
+            shahibul: [
+              ...animal.shahibul,
+              { id: `${animalId}-shahibul-${Date.now()}`, ...input },
+            ],
+          };
+        }),
+      );
+    },
+    [],
+  );
 
   const assignTeam = useCallback(
     (animalId: string, kind: ResponsibilityKind, teamId: string) =>
@@ -201,6 +222,7 @@ export function QurbanProvider({ children }: { children: ReactNode }) {
       teamsFor,
       addAnimal,
       updateAnimalType,
+      addShahibul,
       assignTeam,
       startWork,
       completeWork,
@@ -214,6 +236,7 @@ export function QurbanProvider({ children }: { children: ReactNode }) {
       teamsFor,
       addAnimal,
       updateAnimalType,
+      addShahibul,
       assignTeam,
       startWork,
       completeWork,
