@@ -1,5 +1,24 @@
 import type { Animal, Responsibility, WorkflowStatus } from "./types";
-import { RESPONSIBILITY_ORDER } from "./constants";
+import { RESPONSIBILITY_ORDER, SHAHIBUL_LIMIT } from "./constants";
+
+/** Shahibul capacity + completeness rules for one animal. */
+export function shahibulLimit(animal: Animal) {
+  return SHAHIBUL_LIMIT[animal.type];
+}
+
+export function canAddShahibul(animal: Animal): boolean {
+  return animal.shahibul.length < shahibulLimit(animal).max;
+}
+
+export function shahibulBlocker(animal: Animal): string | null {
+  const { min, max } = shahibulLimit(animal);
+  const count = animal.shahibul.length;
+  if (count < min)
+    return max === min
+      ? `Hewan ini wajib memiliki tepat ${min} shahibul.`
+      : `Hewan ini wajib memiliki minimal ${min} shahibul.`;
+  return null;
+}
 
 /** Aggregated operational status of one animal across all responsibilities. */
 export function animalStatus(animal: Animal): WorkflowStatus {

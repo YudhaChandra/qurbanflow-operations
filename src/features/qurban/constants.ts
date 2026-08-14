@@ -6,6 +6,12 @@ export const ANIMAL_TYPE_LABEL: Record<AnimalType, string> = {
   KAMBING: "Kambing",
 };
 
+/** Shahibul capacity per animal type. */
+export const SHAHIBUL_LIMIT: Record<AnimalType, { min: number; max: number }> = {
+  SAPI: { min: 1, max: 7 },
+  KAMBING: { min: 1, max: 1 },
+};
+
 export const WORKFLOW_ORDER: WorkflowStatus[] = [
   "BELUM_DITUGASKAN",
   "SUDAH_DITUGASKAN",

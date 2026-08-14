@@ -25,6 +25,13 @@ export type OffalIntake = {
   recordedAt: string;
 };
 
+export type Shahibul = {
+  id: string;
+  name: string;
+  phone?: string;
+  notes?: string;
+};
+
 export type Responsibility = {
   kind: ResponsibilityKind;
   status: WorkflowStatus;
@@ -39,7 +46,7 @@ export type Animal = {
   id: string;
   code: string;
   type: AnimalType;
-  shahibul: string[];
+  shahibul: Shahibul[];
   responsibilities: Record<ResponsibilityKind, Responsibility>;
 };
 

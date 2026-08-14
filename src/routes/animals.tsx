@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { Beef, Plus } from "lucide-react";
-import { toast } from "sonner";
 import { PageHeader } from "@/components/common/PageHeader";
 import { EmptyState } from "@/components/common/EmptyState";
 import { StatusBadge } from "@/components/common/StatusBadge";
@@ -16,6 +15,7 @@ import {
 } from "@/components/ui/table";
 import { useQurban } from "@/features/qurban/store";
 import { AnimalFormDialog } from "@/features/qurban/components/AnimalFormDialog";
+import { AnimalDetailSheet } from "@/features/qurban/components/AnimalDetailSheet";
 import {
   ANIMAL_TYPE_LABEL,
   STATUS_LABEL,
@@ -44,6 +44,7 @@ function AnimalsPage() {
   const { event, animals } = useQurban();
   const [addOpen, setAddOpen] = useState(false);
   const [editing, setEditing] = useState<Animal | null>(null);
+  const [detail, setDetail] = useState<Animal | null>(null);
 
   return (
     <>
@@ -106,9 +107,7 @@ function AnimalsPage() {
                         <Button
                           size="sm"
                           variant="ghost"
-                          onClick={() =>
-                            toast.info(`Detail ${animal.code} belum tersedia`)
-                          }
+                          onClick={() => setDetail(animal)}
                         >
                           Detail
                         </Button>
@@ -130,6 +129,13 @@ function AnimalsPage() {
       )}
 
       {addOpen ? <AnimalFormDialog open={addOpen} onOpenChange={setAddOpen} /> : null}
+      {detail ? (
+        <AnimalDetailSheet
+          animal={animals.find((item) => item.id === detail.id) ?? detail}
+          open
+          onOpenChange={(open) => (open ? null : setDetail(null))}
+        />
+      ) : null}
       {editing ? (
         <AnimalFormDialog
           animal={editing}
