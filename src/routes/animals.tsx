@@ -109,7 +109,7 @@ function AnimalsPage() {
     <>
       <PageHeader
         title="Hewan"
-        description={`Daftar hewan pada ${event.name}. Identitas hewan dibuat otomatis per jenis dan diulang setiap acara.`}
+        description="Kelola data hewan kurban untuk event yang sedang berlangsung."
         actions={
           <Button onClick={() => setAddOpen(true)}>
             <Plus className="size-4" />
