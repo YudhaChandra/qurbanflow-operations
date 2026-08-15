@@ -33,6 +33,8 @@ type QurbanContextValue = {
   addAnimal: (type: AnimalType) => void;
   updateAnimalType: (animalId: string, type: AnimalType) => void;
   addShahibul: (animalId: string, input: Omit<Shahibul, "id">) => void;
+  updateShahibul: (animalId: string, shahibulId: string, input: Omit<Shahibul, "id">) => void;
+  removeShahibul: (animalId: string, shahibulId: string) => void;
   assignTeam: (animalId: string, kind: ResponsibilityKind, teamId: string) => void;
   startWork: (animalId: string, kind: ResponsibilityKind) => void;
   completeWork: (animalId: string, kind: ResponsibilityKind) => void;
@@ -125,6 +127,37 @@ export function QurbanProvider({ children }: { children: ReactNode }) {
     },
     [],
   );
+
+  const updateShahibul = useCallback(
+    (animalId: string, shahibulId: string, input: Omit<Shahibul, "id">) => {
+      setAnimals((current) =>
+        current.map((animal) =>
+          animal.id === animalId
+            ? {
+                ...animal,
+                shahibul: animal.shahibul.map((item) =>
+                  item.id === shahibulId ? { id: item.id, ...input } : item,
+                ),
+              }
+            : animal,
+        ),
+      );
+    },
+    [],
+  );
+
+  const removeShahibul = useCallback((animalId: string, shahibulId: string) => {
+    setAnimals((current) =>
+      current.map((animal) =>
+        animal.id === animalId
+          ? {
+              ...animal,
+              shahibul: animal.shahibul.filter((item) => item.id !== shahibulId),
+            }
+          : animal,
+      ),
+    );
+  }, []);
 
   const assignTeam = useCallback(
     (animalId: string, kind: ResponsibilityKind, teamId: string) =>
@@ -223,6 +256,8 @@ export function QurbanProvider({ children }: { children: ReactNode }) {
       addAnimal,
       updateAnimalType,
       addShahibul,
+      updateShahibul,
+      removeShahibul,
       assignTeam,
       startWork,
       completeWork,
@@ -237,6 +272,8 @@ export function QurbanProvider({ children }: { children: ReactNode }) {
       addAnimal,
       updateAnimalType,
       addShahibul,
+      updateShahibul,
+      removeShahibul,
       assignTeam,
       startWork,
       completeWork,
