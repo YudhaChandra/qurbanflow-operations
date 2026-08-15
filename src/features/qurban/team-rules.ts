@@ -16,7 +16,7 @@ export function findPersonTeam(
   teams: Team[],
   users: SystemUser[],
   personName: string,
-  options: { ignoreTeamId?: string; ignoreMemberId?: string } = {},
+  options: { ignoreTeamId?: string | undefined; ignoreMemberId?: string | undefined } = {},
 ): Team | null {
   const target = normalizePersonName(personName);
   if (!target) return null;
@@ -38,7 +38,7 @@ export function findPersonConflict(
   teams: Team[],
   users: SystemUser[],
   personName: string,
-  options: { withinTeamId?: string; ignoreMemberId?: string } = {},
+  options: { withinTeamId?: string | undefined; ignoreMemberId?: string | undefined } = {},
 ): Team | null {
   const target = normalizePersonName(personName);
   if (!target) return null;
