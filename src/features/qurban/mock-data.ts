@@ -1,4 +1,12 @@
-import type { Animal, AnimalType, QurbanEvent, ResponsibilityKind, Team, WorkflowStatus } from "./types";
+import type {
+  Animal,
+  AnimalType,
+  QurbanEvent,
+  ResponsibilityKind,
+  SystemUser,
+  Team,
+  WorkflowStatus,
+} from "./types";
 import { RESPONSIBILITY_ORDER } from "./constants";
 
 export const mockEvent: QurbanEvent = {
@@ -9,13 +17,81 @@ export const mockEvent: QurbanEvent = {
   completed: false,
 };
 
+export const mockUsers: SystemUser[] = [
+  { id: "user-1", name: "Ust. Kholid Ridwan", phone: "0812-1100-2201", role: "Supervisor" },
+  { id: "user-2", name: "Agus Salim", phone: "0812-1100-2202", role: "Supervisor" },
+  { id: "user-3", name: "Bambang Sutejo", phone: "0812-1100-2203", role: "Koordinator" },
+  { id: "user-4", name: "Hendra Wijaya", phone: "0812-1100-2204", role: "Koordinator" },
+  { id: "user-5", name: "Rizal Mahendra", phone: "0812-1100-2205", role: "Koordinator" },
+  { id: "user-6", name: "Slamet Riyadi", phone: "0812-1100-2206", role: "Koordinator" },
+  { id: "user-7", name: "Dedi Kurniawan", phone: "0812-1100-2207", role: "Koordinator" },
+  { id: "user-8", name: "Taufik Hidayat", phone: "0812-1100-2208", role: "Koordinator" },
+  { id: "user-9", name: "Ridho Firmansyah", phone: "0812-1100-2209", role: "Koordinator" },
+  { id: "user-10", name: "Maman Suherman", phone: "0812-1100-2210", role: "Koordinator" },
+];
+
 export const mockTeams: Team[] = [
-  { id: "team-jagal-1", name: "Tim Jagal 1", kind: "SLAUGHTER" },
-  { id: "team-jagal-2", name: "Tim Jagal 2", kind: "SLAUGHTER" },
-  { id: "team-jeroan-1", name: "Tim Jeroan 1", kind: "OFFAL" },
-  { id: "team-jeroan-2", name: "Tim Jeroan 2", kind: "OFFAL" },
-  { id: "team-packing-1", name: "Tim Packing 1", kind: "PACKING" },
-  { id: "team-packing-2", name: "Tim Packing 2", kind: "PACKING" },
+  {
+    id: "team-jagal-1",
+    name: "Tim Jagal 1",
+    kind: "SLAUGHTER",
+    leaderUserId: "user-1",
+    members: [
+      { id: "m-jagal-1-1", name: "Sutrisno", phone: "0813-2200-1101" },
+      { id: "m-jagal-1-2", name: "Yusuf Habibie" },
+      { id: "m-jagal-1-3", name: "Rahmat Saputra", phone: "0813-2200-1103" },
+    ],
+  },
+  {
+    id: "team-jagal-2",
+    name: "Tim Jagal 2",
+    kind: "SLAUGHTER",
+    leaderUserId: "user-2",
+    members: [
+      { id: "m-jagal-2-1", name: "Wahyu Prakoso", phone: "0813-2200-1201" },
+      { id: "m-jagal-2-2", name: "Endang Supriyadi" },
+    ],
+  },
+  {
+    id: "team-jeroan-1",
+    name: "Tim Jeroan 1",
+    kind: "OFFAL",
+    leaderUserId: "user-3",
+    members: [
+      { id: "m-jeroan-1-1", name: "Nur Hidayat", phone: "0813-2200-2101" },
+      { id: "m-jeroan-1-2", name: "Sulastri" },
+      { id: "m-jeroan-1-3", name: "Warsito" },
+    ],
+  },
+  {
+    id: "team-jeroan-2",
+    name: "Tim Jeroan 2",
+    kind: "OFFAL",
+    leaderUserId: "user-4",
+    members: [{ id: "m-jeroan-2-1", name: "Joko Purnomo", phone: "0813-2200-2201" }],
+  },
+  {
+    id: "team-packing-1",
+    name: "Tim Packing 1",
+    kind: "PACKING",
+    leaderUserId: "user-5",
+    members: [
+      { id: "m-packing-1-1", name: "Siti Nurhaliza", phone: "0813-2200-3101" },
+      { id: "m-packing-1-2", name: "Ika Puspita" },
+      { id: "m-packing-1-3", name: "Farhan Maulana" },
+      { id: "m-packing-1-4", name: "Lestari Ningsih" },
+    ],
+  },
+  {
+    id: "team-packing-2",
+    name: "Tim Packing 2",
+    kind: "PACKING",
+    leaderUserId: "user-6",
+    members: [
+      { id: "m-packing-2-1", name: "Rini Astuti", phone: "0813-2200-3201" },
+      { id: "m-packing-2-2", name: "Bayu Anggara" },
+    ],
+  },
 ];
 
 type Seed = {

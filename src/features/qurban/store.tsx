@@ -13,12 +13,15 @@ import type {
   Responsibility,
   ResponsibilityKind,
   Shahibul,
+  SystemUser,
   Team,
+  TeamMember,
 } from "./types";
-import { createMockAnimals, mockEvent, mockTeams } from "./mock-data";
+import { createMockAnimals, mockEvent, mockTeams, mockUsers } from "./mock-data";
 import { RESPONSIBILITY_ORDER, SHAHIBUL_LIMIT } from "./constants";
 import { canComplete } from "./workflow";
 import { nextAnimalCode } from "./identifier";
+import { nextTeamName } from "./team-identifier";
 
 type PackingRecord =
   | { type: "MEAT"; weightKg: number }
@@ -29,7 +32,20 @@ type QurbanContextValue = {
   event: QurbanEvent;
   animals: Animal[];
   teams: Team[];
+  users: SystemUser[];
   teamsFor: (kind: ResponsibilityKind) => Team[];
+  addTeam: (input: { kind: ResponsibilityKind; leaderUserId: string }) => void;
+  updateTeam: (
+    teamId: string,
+    input: { kind: ResponsibilityKind; leaderUserId: string },
+  ) => void;
+  addMember: (teamId: string, input: Omit<TeamMember, "id">) => void;
+  updateMember: (
+    teamId: string,
+    memberId: string,
+    input: Omit<TeamMember, "id">,
+  ) => void;
+  removeMember: (teamId: string, memberId: string) => void;
   addAnimal: (type: AnimalType) => void;
   updateAnimalType: (animalId: string, type: AnimalType) => void;
   addShahibul: (animalId: string, input: Omit<Shahibul, "id">) => void;
@@ -52,6 +68,7 @@ function nowLabel() {
 export function QurbanProvider({ children }: { children: ReactNode }) {
   const [event, setEvent] = useState<QurbanEvent>(mockEvent);
   const [animals, setAnimals] = useState<Animal[]>(() => createMockAnimals());
+  const [teams, setTeams] = useState<Team[]>(mockTeams);
 
   const update = useCallback(
     (
@@ -243,16 +260,102 @@ export function QurbanProvider({ children }: { children: ReactNode }) {
   }, [outstandingResponsibilities]);
 
   const teamsFor = useCallback(
-    (kind: ResponsibilityKind) => mockTeams.filter((team) => team.kind === kind),
+    (kind: ResponsibilityKind) => teams.filter((team) => team.kind === kind),
+    [teams],
+  );
+
+  const addTeam = useCallback(
+    (input: { kind: ResponsibilityKind; leaderUserId: string }) => {
+      setTeams((current) => [
+        ...current,
+        {
+          id: `team-${Date.now()}`,
+          name: nextTeamName(current, input.kind),
+          kind: input.kind,
+          leaderUserId: input.leaderUserId,
+          members: [],
+        },
+      ]);
+    },
     [],
   );
+
+  const updateTeam = useCallback(
+    (teamId: string, input: { kind: ResponsibilityKind; leaderUserId: string }) => {
+      setTeams((current) =>
+        current.map((team) => {
+          if (team.id !== teamId) return team;
+          return {
+            ...team,
+            kind: input.kind,
+            leaderUserId: input.leaderUserId,
+            name:
+              team.kind === input.kind
+                ? team.name
+                : nextTeamName(current, input.kind, teamId),
+          };
+        }),
+      );
+    },
+    [],
+  );
+
+  const addMember = useCallback((teamId: string, input: Omit<TeamMember, "id">) => {
+    setTeams((current) =>
+      current.map((team) =>
+        team.id === teamId
+          ? {
+              ...team,
+              members: [
+                ...team.members,
+                { id: `${teamId}-member-${Date.now()}`, ...input },
+              ],
+            }
+          : team,
+      ),
+    );
+  }, []);
+
+  const updateMember = useCallback(
+    (teamId: string, memberId: string, input: Omit<TeamMember, "id">) => {
+      setTeams((current) =>
+        current.map((team) =>
+          team.id === teamId
+            ? {
+                ...team,
+                members: team.members.map((member) =>
+                  member.id === memberId ? { id: member.id, ...input } : member,
+                ),
+              }
+            : team,
+        ),
+      );
+    },
+    [],
+  );
+
+  const removeMember = useCallback((teamId: string, memberId: string) => {
+    setTeams((current) =>
+      current.map((team) =>
+        team.id === teamId
+          ? { ...team, members: team.members.filter((m) => m.id !== memberId) }
+          : team,
+      ),
+    );
+  }, []);
 
   const value = useMemo<QurbanContextValue>(
     () => ({
       event,
       animals,
-      teams: mockTeams,
+      teams,
+      users: mockUsers,
       teamsFor,
+      addTeam,
+      updateTeam,
+      addMember,
+      updateMember,
+      removeMember,
       addAnimal,
       updateAnimalType,
       addShahibul,
@@ -268,7 +371,13 @@ export function QurbanProvider({ children }: { children: ReactNode }) {
     [
       event,
       animals,
+      teams,
       teamsFor,
+      addTeam,
+      updateTeam,
+      addMember,
+      updateMember,
+      removeMember,
       addAnimal,
       updateAnimalType,
       addShahibul,
