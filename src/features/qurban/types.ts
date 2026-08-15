@@ -12,6 +12,23 @@ export type Team = {
   id: string;
   name: string;
   kind: ResponsibilityKind;
+  leaderUserId: string;
+  members: TeamMember[];
+};
+
+/** System user that can lead an operational team. */
+export type SystemUser = {
+  id: string;
+  name: string;
+  phone?: string;
+  role: string;
+};
+
+/** Team member — not a system user, stored on the team only. */
+export type TeamMember = {
+  id: string;
+  name: string;
+  phone?: string;
 };
 
 export type MeatIntake = {
