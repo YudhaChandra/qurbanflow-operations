@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Plus, Users } from "lucide-react";
+import { Pencil, Plus, Trash2, Users } from "lucide-react";
 import {
   Sheet,
   SheetContent,
@@ -8,12 +8,24 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Separator } from "@/components/ui/separator";
 import { StatusBadge } from "@/components/common/StatusBadge";
 import { ANIMAL_TYPE_LABEL, STATUS_LABEL, STATUS_TONE } from "../constants";
 import { animalStatus, canAddShahibul, shahibulBlocker, shahibulLimit } from "../workflow";
 import { ShahibulFormDialog } from "./ShahibulFormDialog";
-import type { Animal } from "../types";
+import { useQurban } from "../store";
+import type { Animal, Shahibul } from "../types";
+import { toast } from "sonner";
 
 export function AnimalDetailSheet({
   animal,
@@ -25,6 +37,9 @@ export function AnimalDetailSheet({
   onOpenChange: (open: boolean) => void;
 }) {
   const [addOpen, setAddOpen] = useState(false);
+  const [editing, setEditing] = useState<Shahibul | null>(null);
+  const [deleting, setDeleting] = useState<Shahibul | null>(null);
+  const { removeShahibul } = useQurban();
   const limit = shahibulLimit(animal);
   const blocker = shahibulBlocker(animal);
   const canAdd = canAddShahibul(animal);
@@ -96,6 +111,26 @@ export function AnimalDetailSheet({
                       {String(index + 1).padStart(2, "0")}
                     </span>
                     <p className="text-sm font-medium text-foreground">{shahibul.name}</p>
+                    <div className="ml-auto flex gap-1">
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="size-7"
+                        aria-label={`Ubah ${shahibul.name}`}
+                        onClick={() => setEditing(shahibul)}
+                      >
+                        <Pencil className="size-3.5" />
+                      </Button>
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="size-7 text-destructive hover:text-destructive"
+                        aria-label={`Hapus ${shahibul.name}`}
+                        onClick={() => setDeleting(shahibul)}
+                      >
+                        <Trash2 className="size-3.5" />
+                      </Button>
+                    </div>
                   </div>
                   {shahibul.phone ? (
                     <p className="pl-7 font-mono text-xs text-muted-foreground">
@@ -114,6 +149,43 @@ export function AnimalDetailSheet({
         {addOpen ? (
           <ShahibulFormDialog animal={animal} open={addOpen} onOpenChange={setAddOpen} />
         ) : null}
+
+        {editing ? (
+          <ShahibulFormDialog
+            animal={animal}
+            shahibul={editing}
+            open
+            onOpenChange={(next) => (next ? null : setEditing(null))}
+          />
+        ) : null}
+
+        <AlertDialog
+          open={Boolean(deleting)}
+          onOpenChange={(next) => (next ? null : setDeleting(null))}
+        >
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Hapus shahibul?</AlertDialogTitle>
+              <AlertDialogDescription>
+                {deleting?.name} akan dihapus dari {animal.code}. Tindakan ini tidak
+                dapat dibatalkan.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Batal</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={() => {
+                  if (!deleting) return;
+                  removeShahibul(animal.id, deleting.id);
+                  toast.success(`Shahibul dihapus — ${animal.code}`);
+                  setDeleting(null);
+                }}
+              >
+                Hapus
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </SheetContent>
     </Sheet>
   );
