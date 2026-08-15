@@ -13,22 +13,25 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useQurban } from "../store";
-import type { Animal } from "../types";
+import type { Animal, Shahibul } from "../types";
 
 export function ShahibulFormDialog({
   animal,
+  shahibul,
   open,
   onOpenChange,
 }: {
   animal: Animal;
+  shahibul?: Shahibul;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }) {
-  const { addShahibul } = useQurban();
-  const [name, setName] = useState("");
-  const [phone, setPhone] = useState("");
-  const [notes, setNotes] = useState("");
+  const { addShahibul, updateShahibul } = useQurban();
+  const [name, setName] = useState(shahibul?.name ?? "");
+  const [phone, setPhone] = useState(shahibul?.phone ?? "");
+  const [notes, setNotes] = useState(shahibul?.notes ?? "");
   const [error, setError] = useState<string | null>(null);
+  const isEdit = Boolean(shahibul);
 
   const handleSubmit = () => {
     const trimmed = name.trim();
@@ -40,12 +43,18 @@ export function ShahibulFormDialog({
       setError("Nama shahibul maksimal 100 karakter.");
       return;
     }
-    addShahibul(animal.id, {
+    const payload = {
       name: trimmed,
       ...(phone.trim() ? { phone: phone.trim() } : {}),
       ...(notes.trim() ? { notes: notes.trim() } : {}),
-    });
-    toast.success(`Shahibul ditambahkan — ${animal.code}`);
+    };
+    if (shahibul) {
+      updateShahibul(animal.id, shahibul.id, payload);
+      toast.success(`Shahibul diperbarui — ${animal.code}`);
+    } else {
+      addShahibul(animal.id, payload);
+      toast.success(`Shahibul ditambahkan — ${animal.code}`);
+    }
     onOpenChange(false);
   };
 
@@ -53,7 +62,7 @@ export function ShahibulFormDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Tambah Shahibul</DialogTitle>
+          <DialogTitle>{isEdit ? "Ubah Shahibul" : "Tambah Shahibul"}</DialogTitle>
           <DialogDescription>
             Shahibul dicatat langsung pada hewan {animal.code}.
           </DialogDescription>
