@@ -62,3 +62,21 @@ export const EVENT_STATUS_TONE: Record<import("./types").EventStatus, StatusTone
   AKTIF: "info",
   SELESAI: "success",
 };
+
+export const USER_ROLE_LABEL: Record<import("./types").UserRole, string> = {
+  SUPER_ADMIN: "Super Admin",
+  SUPERVISOR: "Supervisor",
+  KETUA_TIM: "Ketua Tim",
+};
+
+export const USER_STATUS_LABEL: Record<import("./types").UserStatus, string> = {
+  PENDING: "Pending",
+  AKTIF: "Aktif",
+  NONAKTIF: "Nonaktif",
+};
+
+export const USER_STATUS_TONE: Record<import("./types").UserStatus, StatusTone> = {
+  PENDING: "warning",
+  AKTIF: "success",
+  NONAKTIF: "neutral",
+};

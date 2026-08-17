@@ -52,6 +52,19 @@ type QurbanContextValue = {
   animals: Animal[];
   teams: Team[];
   users: SystemUser[];
+  addUser: (input: {
+    name: string;
+    email: string;
+    role: "SUPERVISOR" | "KETUA_TIM";
+  }) => { success: boolean; message?: string };
+  updateUser: (
+    userId: string,
+    input: { name: string; email?: string; role: UserRole },
+  ) => { success: boolean; message?: string };
+  setUserStatus: (
+    userId: string,
+    status: "AKTIF" | "NONAKTIF",
+  ) => { success: boolean; message?: string };
   teamsFor: (kind: ResponsibilityKind) => Team[];
   addTeam: (input: { kind: ResponsibilityKind; leaderUserId: string }) => void;
   updateTeam: (
@@ -100,6 +113,8 @@ export function QurbanProvider({ children }: { children: ReactNode }) {
     "evt-2": [],
     "evt-3": [],
   });
+
+  const [users, setUsers] = useState<SystemUser[]>(mockUsers);
 
   const currentEvent = useMemo(
     () => events.find((e) => e.id === selectedEventId) ?? events[0],
@@ -231,6 +246,168 @@ export function QurbanProvider({ children }: { children: ReactNode }) {
     );
     return { success: true };
   }, []);
+
+  const checkUserTeamLeaderAssignment = useCallback(
+    (userId: string) => {
+      const activeOrDraftEvents = events.filter(
+        (e) => e.status === "AKTIF" || e.status === "DRAFT",
+      );
+      for (const evt of activeOrDraftEvents) {
+        const teams = eventsTeams[evt.id] ?? [];
+        if (teams.some((t) => t.leaderUserId === userId)) {
+          return { isAssigned: true, eventName: evt.name };
+        }
+      }
+      return { isAssigned: false, eventName: null };
+    },
+    [events, eventsTeams],
+  );
+
+  const addUser = useCallback(
+    (input: { name: string; email: string; role: "SUPERVISOR" | "KETUA_TIM" }) => {
+      const normalizedEmail = input.email.trim().toLowerCase();
+      const exists = users.some((u) => u.email.trim().toLowerCase() === normalizedEmail);
+      if (exists) {
+        return {
+          success: false,
+          message: "Email sudah terdaftar. Gunakan alamat email lain.",
+        };
+      }
+
+      const newId = `user-${Date.now()}`;
+      const newUser: SystemUser = {
+        id: newId,
+        name: input.name,
+        email: input.email.trim(),
+        role: input.role,
+        status: "PENDING",
+        createdAt: new Date().toISOString().slice(0, 10),
+      };
+      setUsers((prev) => [...prev, newUser]);
+      return { success: true };
+    },
+    [users],
+  );
+
+  const updateUser = useCallback(
+    (
+      userId: string,
+      input: { name: string; email?: string; role: UserRole },
+    ) => {
+      const target = users.find((u) => u.id === userId);
+      if (!target) return { success: false, message: "Pengguna tidak ditemukan." };
+
+      if (target.role === "SUPER_ADMIN") {
+        return {
+          success: false,
+          message: "Akun Super Admin tidak dapat diubah.",
+        };
+      }
+
+      if (target.status === "PENDING" && input.email) {
+        const normalizedEmail = input.email.trim().toLowerCase();
+        const exists = users.some(
+          (u) => u.id !== userId && u.email.trim().toLowerCase() === normalizedEmail,
+        );
+        if (exists) {
+          return {
+            success: false,
+            message: "Email sudah terdaftar. Gunakan alamat email lain.",
+          };
+        }
+      }
+
+      if (input.role !== target.role) {
+        if (target.role === "SUPERVISOR" && input.role !== "SUPERVISOR") {
+          const activeSupervisors = users.filter(
+            (u) => u.role === "SUPERVISOR" && u.status === "AKTIF",
+          );
+          if (activeSupervisors.length <= 1 && target.status === "AKTIF") {
+            return {
+              success: false,
+              message:
+                "Tidak dapat mengubah peran. Sistem harus memiliki setidaknya 1 Supervisor aktif.",
+            };
+          }
+        }
+
+        const assignment = checkUserTeamLeaderAssignment(userId);
+        if (assignment.isAssigned) {
+          return {
+            success: false,
+            message: `Tidak dapat mengubah peran. ${target.name} saat ini bertugas sebagai Ketua Tim di event "${assignment.eventName}". Ganti ketua tim terlebih dahulu.`,
+          };
+        }
+      }
+
+      setUsers((prev) =>
+        prev.map((u) => {
+          if (u.id !== userId) return u;
+          return {
+            ...u,
+            name: input.name,
+            email: u.status === "PENDING" && input.email ? input.email.trim() : u.email,
+            role: input.role,
+          };
+        }),
+      );
+
+      return { success: true };
+    },
+    [users, checkUserTeamLeaderAssignment],
+  );
+
+  const setUserStatus = useCallback(
+    (userId: string, nextStatus: "AKTIF" | "NONAKTIF") => {
+      const target = users.find((u) => u.id === userId);
+      if (!target) return { success: false, message: "Pengguna tidak ditemukan." };
+
+      if (target.role === "SUPER_ADMIN") {
+        return {
+          success: false,
+          message: "Akun Super Admin tidak dapat dinonaktifkan atau diubah statusnya.",
+        };
+      }
+
+      if (target.status === "PENDING" && nextStatus === "AKTIF") {
+        return {
+          success: false,
+          message:
+            "Pengguna dengan status Pending tidak dapat diaktifkan secara manual. Status akan berubah otomatis saat login Google pertama.",
+        };
+      }
+
+      if (nextStatus === "NONAKTIF") {
+        if (target.role === "SUPERVISOR") {
+          const activeSupervisors = users.filter(
+            (u) => u.role === "SUPERVISOR" && u.status === "AKTIF",
+          );
+          if (activeSupervisors.length <= 1) {
+            return {
+              success: false,
+              message:
+                "Tidak dapat menonaktifkan pengguna. Sistem harus memiliki setidaknya 1 Supervisor aktif.",
+            };
+          }
+        }
+
+        const assignment = checkUserTeamLeaderAssignment(userId);
+        if (assignment.isAssigned) {
+          return {
+            success: false,
+            message: `Tidak dapat menonaktifkan pengguna. ${target.name} saat ini bertugas sebagai Ketua Tim di event "${assignment.eventName}". Ganti ketua tim terlebih dahulu.`,
+          };
+        }
+      }
+
+      setUsers((prev) =>
+        prev.map((u) => (u.id === userId ? { ...u, status: nextStatus } : u)),
+      );
+
+      return { success: true };
+    },
+    [users, checkUserTeamLeaderAssignment],
+  );
 
   const update = useCallback(
     (
@@ -563,7 +740,10 @@ export function QurbanProvider({ children }: { children: ReactNode }) {
       getEventStats,
       animals: currentAnimals,
       teams: currentTeams,
-      users: mockUsers,
+      users,
+      addUser,
+      updateUser,
+      setUserStatus,
       teamsFor,
       addTeam,
       updateTeam,
@@ -597,6 +777,10 @@ export function QurbanProvider({ children }: { children: ReactNode }) {
       getEventStats,
       currentAnimals,
       currentTeams,
+      users,
+      addUser,
+      updateUser,
+      setUserStatus,
       teamsFor,
       addTeam,
       updateTeam,
