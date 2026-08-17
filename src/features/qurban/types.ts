@@ -16,12 +16,18 @@ export type Team = {
   members: TeamMember[];
 };
 
-/** System user that can lead an operational team. */
+export type UserRole = "SUPER_ADMIN" | "SUPERVISOR" | "KETUA_TIM";
+export type UserStatus = "PENDING" | "AKTIF" | "NONAKTIF";
+
+/** System user that can lead an operational team or supervise events. */
 export type SystemUser = {
   id: string;
   name: string;
+  email: string;
   phone?: string;
-  role: string;
+  role: UserRole;
+  status: UserStatus;
+  createdAt: string;
 };
 
 /** Team member — not a system user, stored on the team only. */
