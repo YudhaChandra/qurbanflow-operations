@@ -56,7 +56,7 @@ type QurbanContextValue = {
     name: string;
     email: string;
     role: "SUPERVISOR" | "KETUA_TIM";
-  }) => void;
+  }) => { success: boolean; message?: string };
   updateUser: (
     userId: string,
     input: { name: string; email?: string; role: UserRole },
@@ -265,18 +265,28 @@ export function QurbanProvider({ children }: { children: ReactNode }) {
 
   const addUser = useCallback(
     (input: { name: string; email: string; role: "SUPERVISOR" | "KETUA_TIM" }) => {
+      const normalizedEmail = input.email.trim().toLowerCase();
+      const exists = users.some((u) => u.email.trim().toLowerCase() === normalizedEmail);
+      if (exists) {
+        return {
+          success: false,
+          message: "Email sudah terdaftar. Gunakan alamat email lain.",
+        };
+      }
+
       const newId = `user-${Date.now()}`;
       const newUser: SystemUser = {
         id: newId,
         name: input.name,
-        email: input.email,
+        email: input.email.trim(),
         role: input.role,
         status: "PENDING",
         createdAt: new Date().toISOString().slice(0, 10),
       };
       setUsers((prev) => [...prev, newUser]);
+      return { success: true };
     },
-    [],
+    [users],
   );
 
   const updateUser = useCallback(
@@ -292,6 +302,19 @@ export function QurbanProvider({ children }: { children: ReactNode }) {
           success: false,
           message: "Akun Super Admin tidak dapat diubah.",
         };
+      }
+
+      if (target.status === "PENDING" && input.email) {
+        const normalizedEmail = input.email.trim().toLowerCase();
+        const exists = users.some(
+          (u) => u.id !== userId && u.email.trim().toLowerCase() === normalizedEmail,
+        );
+        if (exists) {
+          return {
+            success: false,
+            message: "Email sudah terdaftar. Gunakan alamat email lain.",
+          };
+        }
       }
 
       if (input.role !== target.role) {
@@ -323,7 +346,7 @@ export function QurbanProvider({ children }: { children: ReactNode }) {
           return {
             ...u,
             name: input.name,
-            email: u.status === "PENDING" && input.email ? input.email : u.email,
+            email: u.status === "PENDING" && input.email ? input.email.trim() : u.email,
             role: input.role,
           };
         }),

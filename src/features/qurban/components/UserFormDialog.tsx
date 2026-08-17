@@ -21,8 +21,8 @@ import {
 import { useQurban } from "../store";
 import type { SystemUser, UserRole } from "../types";
 
-function isValidGmail(email: string) {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
+function isValidEmailFormat(email: string) {
+  return /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(email.trim());
 }
 
 export function UserFormDialog({
@@ -34,7 +34,7 @@ export function UserFormDialog({
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }) {
-  const { addUser, updateUser } = useQurban();
+  const { users, addUser, updateUser } = useQurban();
 
   const isEdit = Boolean(user);
   const isSuperAdmin = user?.role === "SUPER_ADMIN";
@@ -45,29 +45,48 @@ export function UserFormDialog({
   const [role, setRole] = useState<UserRole>(
     user?.role === "SUPER_ADMIN" ? "SUPERVISOR" : (user?.role ?? "KETUA_TIM"),
   );
-  const [error, setError] = useState<string | null>(null);
+
+  const [nameError, setNameError] = useState<string | null>(null);
+  const [emailError, setEmailError] = useState<string | null>(null);
+  const [formError, setFormError] = useState<string | null>(null);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    setNameError(null);
+    setEmailError(null);
+    setFormError(null);
 
     if (isSuperAdmin) {
-      setError("Akun Super Admin tidak dapat diubah.");
+      setFormError("Akun Super Admin tidak dapat diubah.");
       return;
     }
 
     if (!name.trim()) {
-      setError("Nama lengkap wajib diisi.");
+      setNameError("Nama lengkap wajib diisi.");
       return;
     }
 
-    if (!email.trim()) {
-      setError("Email Gmail wajib diisi.");
-      return;
-    }
+    if (isEmailEditable) {
+      if (!email.trim()) {
+        setEmailError("Email Gmail wajib diisi.");
+        return;
+      }
 
-    if (!isValidGmail(email)) {
-      setError("Format email Gmail tidak valid.");
-      return;
+      if (!isValidEmailFormat(email)) {
+        setEmailError("Format email tidak valid.");
+        return;
+      }
+
+      // Case-insensitive email uniqueness validation
+      const normalizedEmail = email.trim().toLowerCase();
+      const isDuplicate = users.some(
+        (u) => u.id !== user?.id && u.email.trim().toLowerCase() === normalizedEmail,
+      );
+
+      if (isDuplicate) {
+        setEmailError("Email sudah terdaftar. Gunakan alamat email lain.");
+        return;
+      }
     }
 
     if (isEdit && user) {
@@ -78,17 +97,31 @@ export function UserFormDialog({
       });
 
       if (!res.success) {
-        setError(res.message ?? "Gagal memperbarui pengguna.");
+        if (res.message?.includes("Email sudah terdaftar")) {
+          setEmailError("Email sudah terdaftar. Gunakan alamat email lain.");
+        } else {
+          setFormError(res.message ?? "Gagal memperbarui pengguna.");
+        }
         return;
       }
 
       toast.success(`Pengguna "${name.trim()}" berhasil diperbarui.`);
     } else {
-      addUser({
+      const res = addUser({
         name: name.trim(),
         email: email.trim(),
         role: role === "SUPER_ADMIN" ? "KETUA_TIM" : role,
       });
+
+      if (!res.success) {
+        if (res.message?.includes("Email sudah terdaftar")) {
+          setEmailError("Email sudah terdaftar. Gunakan alamat email lain.");
+        } else {
+          setFormError(res.message ?? "Gagal menambahkan pengguna.");
+        }
+        return;
+      }
+
       toast.success(`Pengguna "${name.trim()}" berhasil ditambahkan (Status: Pending).`);
     }
 
@@ -119,9 +152,12 @@ export function UserFormDialog({
                 value={name}
                 onChange={(e) => {
                   setName(e.target.value);
-                  setError(null);
+                  setNameError(null);
                 }}
               />
+              {nameError ? (
+                <p className="text-xs font-medium text-destructive">{nameError}</p>
+              ) : null}
             </div>
 
             <div className="space-y-2">
@@ -143,9 +179,12 @@ export function UserFormDialog({
                 disabled={!isEmailEditable}
                 onChange={(e) => {
                   setEmail(e.target.value);
-                  setError(null);
+                  setEmailError(null);
                 }}
               />
+              {emailError ? (
+                <p className="text-xs font-medium text-destructive">{emailError}</p>
+              ) : null}
             </div>
 
             <div className="space-y-2">
@@ -156,7 +195,7 @@ export function UserFormDialog({
                 value={role}
                 onValueChange={(val) => {
                   setRole(val as UserRole);
-                  setError(null);
+                  setFormError(null);
                 }}
               >
                 <SelectTrigger id="user-role">
@@ -172,7 +211,9 @@ export function UserFormDialog({
               </p>
             </div>
 
-            {error ? <p className="text-xs font-medium text-destructive">{error}</p> : null}
+            {formError ? (
+              <p className="text-xs font-medium text-destructive">{formError}</p>
+            ) : null}
           </div>
 
           <DialogFooter>
