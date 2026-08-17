@@ -50,3 +50,15 @@ export const RESPONSIBILITY_SHORT: Record<ResponsibilityKind, string> = {
   OFFAL: "Jeroan",
   PACKING: "Packing",
 };
+
+export const EVENT_STATUS_LABEL: Record<import("./types").EventStatus, string> = {
+  DRAFT: "Draft",
+  AKTIF: "Aktif",
+  SELESAI: "Selesai",
+};
+
+export const EVENT_STATUS_TONE: Record<import("./types").EventStatus, StatusTone> = {
+  DRAFT: "neutral",
+  AKTIF: "info",
+  SELESAI: "success",
+};

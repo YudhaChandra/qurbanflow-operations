@@ -1,10 +1,21 @@
 import { Link } from "@tanstack/react-router";
 import { navigation } from "@/lib/navigation";
 import { cn } from "@/lib/utils";
+import { useQurban } from "@/features/qurban/store";
+import { EVENT_STATUS_LABEL } from "@/features/qurban/constants";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export function AppSidebar({ onNavigate }: { onNavigate?: () => void }) {
+  const { events, event, setSelectedEventId } = useQurban();
+
   return (
-    <div className="flex h-full flex-col gap-6 bg-sidebar px-3 py-4">
+    <div className="flex h-full flex-col gap-5 bg-sidebar px-3 py-4">
       <Link
         to="/"
         onClick={onNavigate}
@@ -17,6 +28,29 @@ export function AppSidebar({ onNavigate }: { onNavigate?: () => void }) {
           QurbanOps
         </span>
       </Link>
+
+      <div className="px-2">
+        <p className="mb-1.5 text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+          Event Aktif / Context
+        </p>
+        <Select value={event.id} onValueChange={setSelectedEventId}>
+          <SelectTrigger className="h-9 w-full bg-sidebar-accent/50 text-xs">
+            <SelectValue placeholder="Pilih event..." />
+          </SelectTrigger>
+          <SelectContent>
+            {events.map((evt) => (
+              <SelectItem key={evt.id} value={evt.id} className="text-xs">
+                <div className="flex items-center gap-2">
+                  <span className="truncate font-medium">{evt.name}</span>
+                  <span className="rounded bg-muted px-1 py-0.5 text-[10px] text-muted-foreground shrink-0">
+                    {EVENT_STATUS_LABEL[evt.status]}
+                  </span>
+                </div>
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
 
       <nav className="flex flex-1 flex-col gap-5 overflow-y-auto">
         {navigation.map((group) => (

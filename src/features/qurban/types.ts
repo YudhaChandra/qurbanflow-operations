@@ -67,12 +67,16 @@ export type Animal = {
   responsibilities: Record<ResponsibilityKind, Responsibility>;
 };
 
+export type EventStatus = "DRAFT" | "AKTIF" | "SELESAI";
+
 export type QurbanEvent = {
   id: string;
   name: string;
   date: string;
   location: string;
-  completed: boolean;
+  description?: string;
+  status: EventStatus;
+  completed?: boolean;
 };
 
 /** One board card = one animal x one responsibility. */

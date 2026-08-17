@@ -57,7 +57,7 @@ function normalizeSearch(input: string) {
 }
 
 function AnimalsPage() {
-  const { event, animals } = useQurban();
+  const { event, animals, isReadOnly } = useQurban();
   const [addOpen, setAddOpen] = useState(false);
   const [editing, setEditing] = useState<Animal | null>(null);
   const [detail, setDetail] = useState<Animal | null>(null);
@@ -109,12 +109,14 @@ function AnimalsPage() {
     <>
       <PageHeader
         title="Hewan"
-        description="Kelola data hewan kurban untuk event yang sedang berlangsung."
+        description={`Data hewan kurban untuk event "${event.name}".`}
         actions={
-          <Button onClick={() => setAddOpen(true)}>
-            <Plus className="size-4" />
-            Tambah Hewan
-          </Button>
+          !isReadOnly ? (
+            <Button onClick={() => setAddOpen(true)}>
+              <Plus className="size-4" />
+              Tambah Hewan
+            </Button>
+          ) : null
         }
       />
 
@@ -223,13 +225,15 @@ function AnimalsPage() {
                           >
                             Detail
                           </Button>
-                          <Button
-                            size="sm"
-                            variant="secondary"
-                            onClick={() => setEditing(animal)}
-                          >
-                            Ubah
-                          </Button>
+                          {!isReadOnly ? (
+                            <Button
+                              size="sm"
+                              variant="secondary"
+                              onClick={() => setEditing(animal)}
+                            >
+                              Ubah
+                            </Button>
+                          ) : null}
                         </div>
                       </TableCell>
                     </TableRow>
