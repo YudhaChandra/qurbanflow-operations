@@ -4,6 +4,7 @@ import {
   Link,
   createRootRouteWithContext,
   useRouter,
+  useRouterState,
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
@@ -13,6 +14,7 @@ import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { AppShell } from "../components/layout/AppShell";
 import { QurbanProvider } from "../features/qurban/store";
+import { AuthProvider } from "../features/auth/AuthContext";
 import { Toaster } from "../components/ui/sonner";
 
 function NotFoundComponent() {
@@ -132,15 +134,28 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const isLoginPage = pathname === "/login";
 
   return (
     <QueryClientProvider client={queryClient}>
       <QurbanProvider>
-        <AppShell>
-          {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-          <Outlet />
-        </AppShell>
-        <Toaster position="bottom-right" />
+        <AuthProvider>
+          {isLoginPage ? (
+            <>
+              <Outlet />
+              <Toaster position="bottom-right" />
+            </>
+          ) : (
+            <>
+              <AppShell>
+                {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
+                <Outlet />
+              </AppShell>
+              <Toaster position="bottom-right" />
+            </>
+          )}
+        </AuthProvider>
       </QurbanProvider>
     </QueryClientProvider>
   );

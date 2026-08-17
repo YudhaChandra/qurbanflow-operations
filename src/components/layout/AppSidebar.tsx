@@ -1,8 +1,10 @@
 import { Link } from "@tanstack/react-router";
+import { LogOut, Loader2 } from "lucide-react";
 import { navigation } from "@/lib/navigation";
 import { cn } from "@/lib/utils";
 import { useQurban } from "@/features/qurban/store";
-import { EVENT_STATUS_LABEL } from "@/features/qurban/constants";
+import { useAuth } from "@/features/auth/AuthContext";
+import { EVENT_STATUS_LABEL, USER_ROLE_LABEL } from "@/features/qurban/constants";
 import {
   Select,
   SelectContent,
@@ -10,9 +12,20 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
 
 export function AppSidebar({ onNavigate }: { onNavigate?: () => void }) {
   const { events, event, setSelectedEventId } = useQurban();
+  const { currentUser, isLoading, logout } = useAuth();
+
+  // Generate initials from user's full name
+  const initials = currentUser?.name
+    ? currentUser.name
+        .split(" ")
+        .slice(0, 2)
+        .map((w) => w[0]?.toUpperCase() ?? "")
+        .join("")
+    : "?";
 
   return (
     <div className="flex h-full flex-col gap-5 bg-sidebar px-3 py-4">
@@ -81,19 +94,35 @@ export function AppSidebar({ onNavigate }: { onNavigate?: () => void }) {
         ))}
       </nav>
 
+      {/* Authenticated user footer */}
       <div className="border-t border-sidebar-border pt-3">
         <div className="flex items-center gap-2.5 px-2">
-          <span className="flex size-7 items-center justify-center rounded-full bg-sidebar-accent text-[11px] font-medium text-sidebar-accent-foreground">
-            SA
+          <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-sidebar-accent text-[11px] font-medium text-sidebar-accent-foreground">
+            {initials}
           </span>
-          <div className="min-w-0">
+          <div className="min-w-0 flex-1">
             <p className="truncate text-xs font-medium text-sidebar-accent-foreground">
-              Super Admin
+              {currentUser?.name ?? "—"}
             </p>
             <p className="truncate text-[11px] text-muted-foreground">
-              Committee workspace
+              {currentUser ? USER_ROLE_LABEL[currentUser.role] : "—"}
             </p>
           </div>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="size-7 shrink-0 text-muted-foreground hover:text-sidebar-accent-foreground"
+            onClick={logout}
+            disabled={isLoading}
+            title="Keluar"
+            aria-label="Keluar dari aplikasi"
+          >
+            {isLoading ? (
+              <Loader2 className="size-3.5 animate-spin" />
+            ) : (
+              <LogOut className="size-3.5" />
+            )}
+          </Button>
         </div>
       </div>
     </div>

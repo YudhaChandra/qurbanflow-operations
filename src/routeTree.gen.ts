@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AnimalsRouteImport } from './routes/animals'
 import { Route as EventsRouteImport } from './routes/events'
+import { Route as LoginRouteImport } from './routes/login'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as SummaryRouteImport } from './routes/summary'
 import { Route as TeamsRouteImport } from './routes/teams'
@@ -30,6 +31,11 @@ const AnimalsRoute = AnimalsRouteImport.update({
 const EventsRoute = EventsRouteImport.update({
   id: '/events',
   path: '/events',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SettingsRoute = SettingsRouteImport.update({
@@ -57,6 +63,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/animals': typeof AnimalsRoute
   '/events': typeof EventsRoute
+  '/login': typeof LoginRoute
   '/settings': typeof SettingsRoute
   '/summary': typeof SummaryRoute
   '/teams': typeof TeamsRoute
@@ -66,6 +73,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/animals': typeof AnimalsRoute
   '/events': typeof EventsRoute
+  '/login': typeof LoginRoute
   '/settings': typeof SettingsRoute
   '/summary': typeof SummaryRoute
   '/teams': typeof TeamsRoute
@@ -76,6 +84,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/animals': typeof AnimalsRoute
   '/events': typeof EventsRoute
+  '/login': typeof LoginRoute
   '/settings': typeof SettingsRoute
   '/summary': typeof SummaryRoute
   '/teams': typeof TeamsRoute
@@ -87,6 +96,7 @@ export interface FileRouteTypes {
     | '/'
     | '/animals'
     | '/events'
+    | '/login'
     | '/settings'
     | '/summary'
     | '/teams'
@@ -96,6 +106,7 @@ export interface FileRouteTypes {
     | '/'
     | '/animals'
     | '/events'
+    | '/login'
     | '/settings'
     | '/summary'
     | '/teams'
@@ -105,6 +116,7 @@ export interface FileRouteTypes {
     | '/'
     | '/animals'
     | '/events'
+    | '/login'
     | '/settings'
     | '/summary'
     | '/teams'
@@ -115,6 +127,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AnimalsRoute: typeof AnimalsRoute
   EventsRoute: typeof EventsRoute
+  LoginRoute: typeof LoginRoute
   SettingsRoute: typeof SettingsRoute
   SummaryRoute: typeof SummaryRoute
   TeamsRoute: typeof TeamsRoute
@@ -142,6 +155,13 @@ declare module '@tanstack/react-router' {
       path: '/events'
       fullPath: '/events'
       preLoaderRoute: typeof EventsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/settings': {
@@ -179,6 +199,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AnimalsRoute: AnimalsRoute,
   EventsRoute: EventsRoute,
+  LoginRoute: LoginRoute,
   SettingsRoute: SettingsRoute,
   SummaryRoute: SummaryRoute,
   TeamsRoute: TeamsRoute,

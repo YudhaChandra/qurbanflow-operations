@@ -65,6 +65,7 @@ type QurbanContextValue = {
     userId: string,
     status: "AKTIF" | "NONAKTIF",
   ) => { success: boolean; message?: string };
+  activateUser: (userId: string) => { success: boolean; message?: string };
   teamsFor: (kind: ResponsibilityKind) => Team[];
   addTeam: (input: { kind: ResponsibilityKind; leaderUserId: string }) => void;
   updateTeam: (
@@ -407,6 +408,20 @@ export function QurbanProvider({ children }: { children: ReactNode }) {
       return { success: true };
     },
     [users, checkUserTeamLeaderAssignment],
+  );
+
+  // Business method: called by AuthContext on first login (Pending → Aktif)
+  const activateUser = useCallback(
+    (userId: string) => {
+      const target = users.find((u) => u.id === userId);
+      if (!target) return { success: false, message: "Pengguna tidak ditemukan." };
+      if (target.status !== "PENDING") return { success: true }; // already active
+      setUsers((prev) =>
+        prev.map((u) => (u.id === userId ? { ...u, status: "AKTIF" as const } : u)),
+      );
+      return { success: true };
+    },
+    [users],
   );
 
   const update = useCallback(
@@ -781,6 +796,7 @@ export function QurbanProvider({ children }: { children: ReactNode }) {
       addUser,
       updateUser,
       setUserStatus,
+      activateUser,
       teamsFor,
       addTeam,
       updateTeam,
