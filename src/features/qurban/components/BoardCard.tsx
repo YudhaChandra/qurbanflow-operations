@@ -11,7 +11,7 @@ import { AssignTeamDialog } from "./AssignTeamDialog";
 import { PackingSheet } from "./PackingSheet";
 
 export function BoardCard({ card }: { card: BoardCardModel }) {
-  const { startWork, completeWork } = useQurban();
+  const { startWork, completeWork, isReadOnly } = useQurban();
   const [assignOpen, setAssignOpen] = useState(false);
   const [packingOpen, setPackingOpen] = useState(false);
   const { animal, responsibility, team } = card;
@@ -66,7 +66,7 @@ export function BoardCard({ card }: { card: BoardCardModel }) {
         </div>
       ) : null}
 
-      {action ? (
+      {action && !isReadOnly ? (
         <Button
           size="sm"
           variant={action === "ASSIGN" ? "secondary" : "default"}

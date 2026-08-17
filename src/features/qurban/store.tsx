@@ -9,6 +9,7 @@ import {
 import type {
   Animal,
   AnimalType,
+  EventStatus,
   QurbanEvent,
   Responsibility,
   ResponsibilityKind,
@@ -17,7 +18,7 @@ import type {
   Team,
   TeamMember,
 } from "./types";
-import { createMockAnimals, mockEvent, mockTeams, mockUsers } from "./mock-data";
+import { createMockAnimals, mockEvents, mockTeams, mockUsers } from "./mock-data";
 import { RESPONSIBILITY_ORDER, SHAHIBUL_LIMIT } from "./constants";
 import { canComplete } from "./workflow";
 import { nextAnimalCode } from "./identifier";
@@ -28,8 +29,26 @@ type PackingRecord =
   | { type: "OFFAL"; weightKg: number }
   | { type: "PACKAGE_COUNT"; count: number };
 
+type EventInput = {
+  name: string;
+  date: string;
+  location: string;
+  description?: string;
+};
+
 type QurbanContextValue = {
+  events: QurbanEvent[];
   event: QurbanEvent;
+  activeEvent: QurbanEvent | null;
+  selectedEventId: string;
+  setSelectedEventId: (id: string) => void;
+  addEvent: (input: EventInput) => void;
+  updateEvent: (eventId: string, input: EventInput) => void;
+  activateEvent: (eventId: string) => { success: boolean; message?: string };
+  finishEvent: (eventId: string) => { success: boolean; message?: string };
+  isReadOnly: boolean;
+  getEventStats: (eventId: string) => { animalCount: number; teamCount: number };
+
   animals: Animal[];
   teams: Team[];
   users: SystemUser[];
@@ -39,6 +58,7 @@ type QurbanContextValue = {
     teamId: string,
     input: { kind: ResponsibilityKind; leaderUserId: string },
   ) => void;
+  deleteTeam: (teamId: string) => void;
   addMember: (teamId: string, input: Omit<TeamMember, "id">) => void;
   updateMember: (
     teamId: string,
@@ -66,9 +86,151 @@ function nowLabel() {
 }
 
 export function QurbanProvider({ children }: { children: ReactNode }) {
-  const [event, setEvent] = useState<QurbanEvent>(mockEvent);
-  const [animals, setAnimals] = useState<Animal[]>(() => createMockAnimals());
-  const [teams, setTeams] = useState<Team[]>(mockTeams);
+  const [events, setEvents] = useState<QurbanEvent[]>(mockEvents);
+  const [selectedEventId, setSelectedEventId] = useState<string>("evt-1");
+
+  const [eventsAnimals, setEventsAnimals] = useState<Record<string, Animal[]>>({
+    "evt-1": createMockAnimals(),
+    "evt-2": [],
+    "evt-3": [],
+  });
+
+  const [eventsTeams, setEventsTeams] = useState<Record<string, Team[]>>({
+    "evt-1": mockTeams,
+    "evt-2": [],
+    "evt-3": [],
+  });
+
+  const currentEvent = useMemo(
+    () => events.find((e) => e.id === selectedEventId) ?? events[0],
+    [events, selectedEventId],
+  );
+
+  const activeEvent = useMemo(
+    () => events.find((e) => e.status === "AKTIF") ?? null,
+    [events],
+  );
+
+  const isReadOnly = currentEvent.status === "SELESAI";
+
+  const currentAnimals = useMemo(
+    () => eventsAnimals[currentEvent.id] ?? [],
+    [eventsAnimals, currentEvent.id],
+  );
+
+  const currentTeams = useMemo(
+    () => eventsTeams[currentEvent.id] ?? [],
+    [eventsTeams, currentEvent.id],
+  );
+
+  const setAnimalsForCurrent = useCallback(
+    (updater: (prev: Animal[]) => Animal[]) => {
+      setEventsAnimals((prev) => ({
+        ...prev,
+        [currentEvent.id]: updater(prev[currentEvent.id] ?? []),
+      }));
+    },
+    [currentEvent.id],
+  );
+
+  const setTeamsForCurrent = useCallback(
+    (updater: (prev: Team[]) => Team[]) => {
+      setEventsTeams((prev) => ({
+        ...prev,
+        [currentEvent.id]: updater(prev[currentEvent.id] ?? []),
+      }));
+    },
+    [currentEvent.id],
+  );
+
+  const getEventStats = useCallback(
+    (eventId: string) => {
+      const animalCount = (eventsAnimals[eventId] ?? []).length;
+      const teamCount = (eventsTeams[eventId] ?? []).length;
+      return { animalCount, teamCount };
+    },
+    [eventsAnimals, eventsTeams],
+  );
+
+  const addEvent = useCallback((input: EventInput) => {
+    const newId = `evt-${Date.now()}`;
+    const newEvent: QurbanEvent = {
+      id: newId,
+      name: input.name,
+      date: input.date,
+      location: input.location,
+      description: input.description,
+      status: "DRAFT",
+      completed: false,
+    };
+    setEvents((prev) => [newEvent, ...prev]);
+    setEventsAnimals((prev) => ({ ...prev, [newId]: [] }));
+    setEventsTeams((prev) => ({ ...prev, [newId]: [] }));
+    setSelectedEventId(newId);
+  }, []);
+
+  const updateEvent = useCallback((eventId: string, input: EventInput) => {
+    setEvents((prev) =>
+      prev.map((e) => {
+        if (e.id !== eventId) return e;
+        if (e.status !== "DRAFT") return e;
+        return {
+          ...e,
+          name: input.name,
+          date: input.date,
+          location: input.location,
+          description: input.description,
+        };
+      }),
+    );
+  }, []);
+
+  const activateEvent = useCallback(
+    (eventId: string) => {
+      const targetEvent = events.find((e) => e.id === eventId);
+      if (!targetEvent) {
+        return { success: false, message: "Event tidak ditemukan." };
+      }
+      if (targetEvent.status !== "DRAFT") {
+        return { success: false, message: "Hanya event berstatus Draft yang dapat diaktifkan." };
+      }
+
+      const animalCount = (eventsAnimals[eventId] ?? []).length;
+      const teamCount = (eventsTeams[eventId] ?? []).length;
+
+      if (animalCount === 0 || teamCount === 0) {
+        return {
+          success: false,
+          message:
+            "Event tidak dapat diaktifkan. Event harus memiliki setidaknya 1 Hewan Kurban dan 1 Tim Operasional.",
+        };
+      }
+
+      const existingActive = events.find((e) => e.id !== eventId && e.status === "AKTIF");
+      if (existingActive) {
+        return {
+          success: false,
+          message: `Tidak dapat mengaktifkan event. Mohon selesaikan event yang sedang aktif ("${existingActive.name}") terlebih dahulu.`,
+        };
+      }
+
+      setEvents((prev) =>
+        prev.map((e) => (e.id === eventId ? { ...e, status: "AKTIF" } : e)),
+      );
+
+      return { success: true };
+    },
+    [events, eventsAnimals, eventsTeams],
+  );
+
+  const finishEvent = useCallback((eventId: string) => {
+    setEvents((prev) =>
+      prev.map((e) =>
+        e.id === eventId ? { ...e, status: "SELESAI", completed: true } : e,
+      ),
+    );
+    return { success: true };
+  }, []);
 
   const update = useCallback(
     (
@@ -76,7 +238,7 @@ export function QurbanProvider({ children }: { children: ReactNode }) {
       kind: ResponsibilityKind,
       updater: (responsibility: Responsibility) => Responsibility,
     ) => {
-      setAnimals((current) =>
+      setAnimalsForCurrent((current) =>
         current.map((animal) =>
           animal.id === animalId
             ? {
@@ -90,45 +252,51 @@ export function QurbanProvider({ children }: { children: ReactNode }) {
         ),
       );
     },
-    [],
+    [setAnimalsForCurrent],
   );
 
-  const addAnimal = useCallback((type: AnimalType) => {
-    setAnimals((current) => {
-      const code = nextAnimalCode(current, type);
-      const id = `animal-${Date.now()}`;
-      const responsibilities = {} as Animal["responsibilities"];
-      for (const kind of RESPONSIBILITY_ORDER) {
-        responsibilities[kind] = {
-          kind,
-          status: "BELUM_DITUGASKAN",
-          teamId: null,
-          meatIntakes: [],
-          offalIntake: null,
-          packageCount: null,
-        };
-      }
-      return [...current, { id, code, type, shahibul: [], responsibilities }];
-    });
-  }, []);
+  const addAnimal = useCallback(
+    (type: AnimalType) => {
+      setAnimalsForCurrent((current) => {
+        const code = nextAnimalCode(current, type);
+        const id = `animal-${Date.now()}`;
+        const responsibilities = {} as Animal["responsibilities"];
+        for (const kind of RESPONSIBILITY_ORDER) {
+          responsibilities[kind] = {
+            kind,
+            status: "BELUM_DITUGASKAN",
+            teamId: null,
+            meatIntakes: [],
+            offalIntake: null,
+            packageCount: null,
+          };
+        }
+        return [...current, { id, code, type, shahibul: [], responsibilities }];
+      });
+    },
+    [setAnimalsForCurrent],
+  );
 
-  const updateAnimalType = useCallback((animalId: string, type: AnimalType) => {
-    setAnimals((current) =>
-      current.map((animal) => {
-        if (animal.id !== animalId || animal.type === type) return animal;
-        return {
-          ...animal,
-          type,
-          code: nextAnimalCode(current, type, animalId),
-          shahibul: animal.shahibul.slice(0, SHAHIBUL_LIMIT[type].max),
-        };
-      }),
-    );
-  }, []);
+  const updateAnimalType = useCallback(
+    (animalId: string, type: AnimalType) => {
+      setAnimalsForCurrent((current) =>
+        current.map((animal) => {
+          if (animal.id !== animalId || animal.type === type) return animal;
+          return {
+            ...animal,
+            type,
+            code: nextAnimalCode(current, type, animalId),
+            shahibul: animal.shahibul.slice(0, SHAHIBUL_LIMIT[type].max),
+          };
+        }),
+      );
+    },
+    [setAnimalsForCurrent],
+  );
 
   const addShahibul = useCallback(
     (animalId: string, input: Omit<Shahibul, "id">) => {
-      setAnimals((current) =>
+      setAnimalsForCurrent((current) =>
         current.map((animal) => {
           if (animal.id !== animalId) return animal;
           if (animal.shahibul.length >= SHAHIBUL_LIMIT[animal.type].max) return animal;
@@ -142,12 +310,12 @@ export function QurbanProvider({ children }: { children: ReactNode }) {
         }),
       );
     },
-    [],
+    [setAnimalsForCurrent],
   );
 
   const updateShahibul = useCallback(
     (animalId: string, shahibulId: string, input: Omit<Shahibul, "id">) => {
-      setAnimals((current) =>
+      setAnimalsForCurrent((current) =>
         current.map((animal) =>
           animal.id === animalId
             ? {
@@ -160,21 +328,24 @@ export function QurbanProvider({ children }: { children: ReactNode }) {
         ),
       );
     },
-    [],
+    [setAnimalsForCurrent],
   );
 
-  const removeShahibul = useCallback((animalId: string, shahibulId: string) => {
-    setAnimals((current) =>
-      current.map((animal) =>
-        animal.id === animalId
-          ? {
-              ...animal,
-              shahibul: animal.shahibul.filter((item) => item.id !== shahibulId),
-            }
-          : animal,
-      ),
-    );
-  }, []);
+  const removeShahibul = useCallback(
+    (animalId: string, shahibulId: string) => {
+      setAnimalsForCurrent((current) =>
+        current.map((animal) =>
+          animal.id === animalId
+            ? {
+                ...animal,
+                shahibul: animal.shahibul.filter((item) => item.id !== shahibulId),
+              }
+            : animal,
+        ),
+      );
+    },
+    [setAnimalsForCurrent],
+  );
 
   const assignTeam = useCallback(
     (animalId: string, kind: ResponsibilityKind, teamId: string) =>
@@ -243,7 +414,7 @@ export function QurbanProvider({ children }: { children: ReactNode }) {
 
   const outstandingResponsibilities = useMemo(
     () =>
-      animals.reduce(
+      currentAnimals.reduce(
         (total, animal) =>
           total +
           RESPONSIBILITY_ORDER.filter(
@@ -251,22 +422,22 @@ export function QurbanProvider({ children }: { children: ReactNode }) {
           ).length,
         0,
       ),
-    [animals],
+    [currentAnimals],
   );
 
   const completeEvent = useCallback(() => {
     if (outstandingResponsibilities > 0) return;
-    setEvent((current) => ({ ...current, completed: true }));
-  }, [outstandingResponsibilities]);
+    finishEvent(currentEvent.id);
+  }, [outstandingResponsibilities, finishEvent, currentEvent.id]);
 
   const teamsFor = useCallback(
-    (kind: ResponsibilityKind) => teams.filter((team) => team.kind === kind),
-    [teams],
+    (kind: ResponsibilityKind) => currentTeams.filter((team) => team.kind === kind),
+    [currentTeams],
   );
 
   const addTeam = useCallback(
     (input: { kind: ResponsibilityKind; leaderUserId: string }) => {
-      setTeams((current) => [
+      setTeamsForCurrent((current) => [
         ...current,
         {
           id: `team-${Date.now()}`,
@@ -277,12 +448,12 @@ export function QurbanProvider({ children }: { children: ReactNode }) {
         },
       ]);
     },
-    [],
+    [setTeamsForCurrent],
   );
 
   const updateTeam = useCallback(
     (teamId: string, input: { kind: ResponsibilityKind; leaderUserId: string }) => {
-      setTeams((current) =>
+      setTeamsForCurrent((current) =>
         current.map((team) => {
           if (team.id !== teamId) return team;
           return {
@@ -297,28 +468,31 @@ export function QurbanProvider({ children }: { children: ReactNode }) {
         }),
       );
     },
-    [],
+    [setTeamsForCurrent],
   );
 
-  const addMember = useCallback((teamId: string, input: Omit<TeamMember, "id">) => {
-    setTeams((current) =>
-      current.map((team) =>
-        team.id === teamId
-          ? {
-              ...team,
-              members: [
-                ...team.members,
-                { id: `${teamId}-member-${Date.now()}`, ...input },
-              ],
-            }
-          : team,
-      ),
-    );
-  }, []);
+  const addMember = useCallback(
+    (teamId: string, input: Omit<TeamMember, "id">) => {
+      setTeamsForCurrent((current) =>
+        current.map((team) =>
+          team.id === teamId
+            ? {
+                ...team,
+                members: [
+                  ...team.members,
+                  { id: `${teamId}-member-${Date.now()}`, ...input },
+                ],
+              }
+            : team,
+        ),
+      );
+    },
+    [setTeamsForCurrent],
+  );
 
   const updateMember = useCallback(
     (teamId: string, memberId: string, input: Omit<TeamMember, "id">) => {
-      setTeams((current) =>
+      setTeamsForCurrent((current) =>
         current.map((team) =>
           team.id === teamId
             ? {
@@ -331,28 +505,69 @@ export function QurbanProvider({ children }: { children: ReactNode }) {
         ),
       );
     },
-    [],
+    [setTeamsForCurrent],
   );
 
-  const removeMember = useCallback((teamId: string, memberId: string) => {
-    setTeams((current) =>
-      current.map((team) =>
-        team.id === teamId
-          ? { ...team, members: team.members.filter((m) => m.id !== memberId) }
-          : team,
-      ),
-    );
-  }, []);
+  const removeMember = useCallback(
+    (teamId: string, memberId: string) => {
+      setTeamsForCurrent((current) =>
+        current.map((team) =>
+          team.id === teamId
+            ? { ...team, members: team.members.filter((m) => m.id !== memberId) }
+            : team,
+        ),
+      );
+    },
+    [setTeamsForCurrent],
+  );
+
+  const deleteTeam = useCallback(
+    (teamId: string) => {
+      setTeamsForCurrent((current) => current.filter((team) => team.id !== teamId));
+      setAnimalsForCurrent((current) =>
+        current.map((animal) => {
+          let modified = false;
+          const responsibilities = { ...animal.responsibilities };
+          for (const kind of RESPONSIBILITY_ORDER) {
+            if (responsibilities[kind].teamId === teamId) {
+              modified = true;
+              responsibilities[kind] = {
+                ...responsibilities[kind],
+                teamId: null,
+                status:
+                  responsibilities[kind].status === "SUDAH_DITUGASKAN"
+                    ? "BELUM_DITUGASKAN"
+                    : responsibilities[kind].status,
+              };
+            }
+          }
+          return modified ? { ...animal, responsibilities } : animal;
+        }),
+      );
+    },
+    [setTeamsForCurrent, setAnimalsForCurrent],
+  );
 
   const value = useMemo<QurbanContextValue>(
     () => ({
-      event,
-      animals,
-      teams,
+      events,
+      event: currentEvent,
+      activeEvent,
+      selectedEventId,
+      setSelectedEventId,
+      addEvent,
+      updateEvent,
+      activateEvent,
+      finishEvent,
+      isReadOnly,
+      getEventStats,
+      animals: currentAnimals,
+      teams: currentTeams,
       users: mockUsers,
       teamsFor,
       addTeam,
       updateTeam,
+      deleteTeam,
       addMember,
       updateMember,
       removeMember,
@@ -369,12 +584,23 @@ export function QurbanProvider({ children }: { children: ReactNode }) {
       outstandingResponsibilities,
     }),
     [
-      event,
-      animals,
-      teams,
+      events,
+      currentEvent,
+      activeEvent,
+      selectedEventId,
+      setSelectedEventId,
+      addEvent,
+      updateEvent,
+      activateEvent,
+      finishEvent,
+      isReadOnly,
+      getEventStats,
+      currentAnimals,
+      currentTeams,
       teamsFor,
       addTeam,
       updateTeam,
+      deleteTeam,
       addMember,
       updateMember,
       removeMember,

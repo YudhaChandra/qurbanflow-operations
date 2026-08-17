@@ -9,13 +9,37 @@ import type {
 } from "./types";
 import { RESPONSIBILITY_ORDER } from "./constants";
 
-export const mockEvent: QurbanEvent = {
-  id: "evt-1",
-  name: "Qurban 1447 H — Masjid Al-Ikhlas",
-  date: "2026-05-27",
-  location: "Lapangan Al-Ikhlas, Bandung",
-  completed: false,
-};
+export const mockEvents: QurbanEvent[] = [
+  {
+    id: "evt-1",
+    name: "Qurban 1447 H — Masjid Al-Ikhlas",
+    date: "2026-05-27",
+    location: "Lapangan Al-Ikhlas, Bandung",
+    description: "Operasi kurban utama tahun 1447 H mencakup area Bandung Timur.",
+    status: "AKTIF",
+    completed: false,
+  },
+  {
+    id: "evt-2",
+    name: "Qurban 1448 H — Persiapan Masjid Al-Ikhlas",
+    date: "2027-05-16",
+    location: "Kompleks Masjid Al-Ikhlas, Bandung",
+    description: "Rencana kegiatan kurban tahun 1448 H yang masih dalam tahap draf.",
+    status: "DRAFT",
+    completed: false,
+  },
+  {
+    id: "evt-3",
+    name: "Qurban 1446 H — Masjid Al-Ikhlas",
+    date: "2025-06-07",
+    location: "Halaman Masjid Al-Ikhlas, Bandung",
+    description: "Dokumentasi dan arsip historis pelaksaaan kurban 1446 H.",
+    status: "SELESAI",
+    completed: true,
+  },
+];
+
+export const mockEvent: QurbanEvent = mockEvents[0];
 
 export const mockUsers: SystemUser[] = [
   { id: "user-1", name: "Ust. Kholid Ridwan", phone: "0812-1100-2201", role: "Supervisor" },
