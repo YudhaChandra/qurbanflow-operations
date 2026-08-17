@@ -9,4 +9,9 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     autoRefreshToken: true,
     detectSessionInUrl: true,
   },
+  realtime: {
+    // Disabled: we only use Supabase Auth, not Realtime.
+    // This prevents the WebSocket error on Node.js < 22 (SSR).
+    autoConnect: false,
+  },
 });

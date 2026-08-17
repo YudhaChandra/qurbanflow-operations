@@ -2,6 +2,7 @@ import {
   createContext,
   useCallback,
   useContext,
+  useEffect,
   useMemo,
   useState,
   type ReactNode,
@@ -16,9 +17,11 @@ import type {
   Shahibul,
   SystemUser,
   Team,
+  UserRole,
   TeamMember,
 } from "./types";
-import { createMockAnimals, mockEvents, mockTeams, mockUsers } from "./mock-data";
+import { createMockAnimals, mockEvents, mockTeams } from "./mock-data";
+import { supabase } from "@/lib/supabase";
 import { RESPONSIBILITY_ORDER, SHAHIBUL_LIMIT } from "./constants";
 import { canComplete } from "./workflow";
 import { nextAnimalCode } from "./identifier";
@@ -52,6 +55,7 @@ type QurbanContextValue = {
   animals: Animal[];
   teams: Team[];
   users: SystemUser[];
+  usersLoaded: boolean;
   addUser: (input: {
     name: string;
     email: string;
@@ -115,7 +119,45 @@ export function QurbanProvider({ children }: { children: ReactNode }) {
     "evt-3": [],
   });
 
-  const [users, setUsers] = useState<SystemUser[]>(mockUsers);
+  const [users, setUsers] = useState<SystemUser[]>([]);
+  const [usersLoaded, setUsersLoaded] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadUsers = async () => {
+      const { data, error } = await supabase
+        .from("users")
+        .select("id, name, email, role, status, created_at")
+        .order("created_at", { ascending: true });
+
+      if (cancelled) return;
+
+      if (error) {
+        console.error("Gagal mengambil pengguna dari Supabase:", error);
+        setUsersLoaded(true);
+        return;
+      }
+
+      const mappedUsers: SystemUser[] = (data ?? []).map((user) => ({
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role: user.role as SystemUser["role"],
+        status: user.status as SystemUser["status"],
+        createdAt: user.created_at,
+      }));
+
+      setUsers(mappedUsers);
+      setUsersLoaded(true);
+    };
+
+    void loadUsers();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const currentEvent = useMemo(
     () => events.find((e) => e.id === selectedEventId) ?? events[0],
@@ -278,13 +320,28 @@ export function QurbanProvider({ children }: { children: ReactNode }) {
       const newId = `user-${Date.now()}`;
       const newUser: SystemUser = {
         id: newId,
-        name: input.name,
-        email: input.email.trim(),
+        name: input.name.trim(),
+        email: normalizedEmail,
         role: input.role,
         status: "PENDING",
         createdAt: new Date().toISOString().slice(0, 10),
       };
+
       setUsers((prev) => [...prev, newUser]);
+
+      void supabase.from("users").insert({
+        id: newUser.id,
+        name: newUser.name,
+        email: newUser.email,
+        role: newUser.role,
+        status: newUser.status,
+        created_at: newUser.createdAt,
+      }).then(({ error }) => {
+        if (error) {
+          console.error("Gagal menyimpan pengguna baru ke Supabase:", error);
+        }
+      });
+
       return { success: true };
     },
     [users],
@@ -341,17 +398,33 @@ export function QurbanProvider({ children }: { children: ReactNode }) {
         }
       }
 
+      const nextName = input.name.trim();
+      const nextEmail =
+        target.status === "PENDING" && input.email
+          ? input.email.trim().toLowerCase()
+          : target.email;
+
       setUsers((prev) =>
-        prev.map((u) => {
-          if (u.id !== userId) return u;
-          return {
-            ...u,
-            name: input.name,
-            email: u.status === "PENDING" && input.email ? input.email.trim() : u.email,
-            role: input.role,
-          };
-        }),
+        prev.map((u) =>
+          u.id === userId
+            ? { ...u, name: nextName, email: nextEmail, role: input.role }
+            : u,
+        ),
       );
+
+      void supabase
+        .from("users")
+        .update({
+          name: nextName,
+          email: nextEmail,
+          role: input.role,
+        })
+        .eq("id", userId)
+        .then(({ error }) => {
+          if (error) {
+            console.error("Gagal menyimpan perubahan pengguna ke Supabase:", error);
+          }
+        });
 
       return { success: true };
     },
@@ -405,6 +478,16 @@ export function QurbanProvider({ children }: { children: ReactNode }) {
         prev.map((u) => (u.id === userId ? { ...u, status: nextStatus } : u)),
       );
 
+      void supabase
+        .from("users")
+        .update({ status: nextStatus })
+        .eq("id", userId)
+        .then(({ error }) => {
+          if (error) {
+            console.error("Gagal mengubah status pengguna di Supabase:", error);
+          }
+        });
+
       return { success: true };
     },
     [users, checkUserTeamLeaderAssignment],
@@ -419,6 +502,17 @@ export function QurbanProvider({ children }: { children: ReactNode }) {
       setUsers((prev) =>
         prev.map((u) => (u.id === userId ? { ...u, status: "AKTIF" as const } : u)),
       );
+
+      void supabase
+        .from("users")
+        .update({ status: "AKTIF" })
+        .eq("id", userId)
+        .then(({ error }) => {
+          if (error) {
+            console.error("Gagal mengaktifkan pengguna di Supabase:", error);
+          }
+        });
+
       return { success: true };
     },
     [users],
@@ -434,12 +528,12 @@ export function QurbanProvider({ children }: { children: ReactNode }) {
         current.map((animal) =>
           animal.id === animalId
             ? {
-                ...animal,
-                responsibilities: {
-                  ...animal.responsibilities,
-                  [kind]: updater(animal.responsibilities[kind]),
-                },
-              }
+              ...animal,
+              responsibilities: {
+                ...animal.responsibilities,
+                [kind]: updater(animal.responsibilities[kind]),
+              },
+            }
             : animal,
         ),
       );
@@ -511,11 +605,11 @@ export function QurbanProvider({ children }: { children: ReactNode }) {
         current.map((animal) =>
           animal.id === animalId
             ? {
-                ...animal,
-                shahibul: animal.shahibul.map((item) =>
-                  item.id === shahibulId ? { id: item.id, ...input } : item,
-                ),
-              }
+              ...animal,
+              shahibul: animal.shahibul.map((item) =>
+                item.id === shahibulId ? { id: item.id, ...input } : item,
+              ),
+            }
             : animal,
         ),
       );
@@ -529,9 +623,9 @@ export function QurbanProvider({ children }: { children: ReactNode }) {
         current.map((animal) =>
           animal.id === animalId
             ? {
-                ...animal,
-                shahibul: animal.shahibul.filter((item) => item.id !== shahibulId),
-              }
+              ...animal,
+              shahibul: animal.shahibul.filter((item) => item.id !== shahibulId),
+            }
             : animal,
         ),
       );
@@ -545,13 +639,13 @@ export function QurbanProvider({ children }: { children: ReactNode }) {
         responsibility.status === "SELESAI"
           ? responsibility
           : {
-              ...responsibility,
-              teamId,
-              status:
-                responsibility.status === "BELUM_DITUGASKAN"
-                  ? "SUDAH_DITUGASKAN"
-                  : responsibility.status,
-            },
+            ...responsibility,
+            teamId,
+            status:
+              responsibility.status === "BELUM_DITUGASKAN"
+                ? "SUDAH_DITUGASKAN"
+                : responsibility.status,
+          },
       ),
     [update],
   );
@@ -669,12 +763,12 @@ export function QurbanProvider({ children }: { children: ReactNode }) {
         current.map((team) =>
           team.id === teamId
             ? {
-                ...team,
-                members: [
-                  ...team.members,
-                  { id: `${teamId}-member-${Date.now()}`, ...input },
-                ],
-              }
+              ...team,
+              members: [
+                ...team.members,
+                { id: `${teamId}-member-${Date.now()}`, ...input },
+              ],
+            }
             : team,
         ),
       );
@@ -688,11 +782,11 @@ export function QurbanProvider({ children }: { children: ReactNode }) {
         current.map((team) =>
           team.id === teamId
             ? {
-                ...team,
-                members: team.members.map((member) =>
-                  member.id === memberId ? { id: member.id, ...input } : member,
-                ),
-              }
+              ...team,
+              members: team.members.map((member) =>
+                member.id === memberId ? { id: member.id, ...input } : member,
+              ),
+            }
             : team,
         ),
       );
@@ -756,9 +850,11 @@ export function QurbanProvider({ children }: { children: ReactNode }) {
       animals: currentAnimals,
       teams: currentTeams,
       users,
+      usersLoaded,
       addUser,
       updateUser,
       setUserStatus,
+      activateUser,
       teamsFor,
       addTeam,
       updateTeam,
@@ -793,6 +889,7 @@ export function QurbanProvider({ children }: { children: ReactNode }) {
       currentAnimals,
       currentTeams,
       users,
+      usersLoaded,
       addUser,
       updateUser,
       setUserStatus,

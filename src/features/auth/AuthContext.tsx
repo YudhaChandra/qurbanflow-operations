@@ -7,6 +7,9 @@ import {
   useState,
   type ReactNode,
 } from "react";
+import {
+  useNavigate,
+} from "@tanstack/react-router";
 import { supabase } from "@/lib/supabase";
 import { useQurban } from "@/features/qurban/store";
 import type { SystemUser } from "@/features/qurban/types";
@@ -27,7 +30,8 @@ type AuthContextValue = {
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const { users, activateUser } = useQurban();
+  const { users, usersLoaded, activateUser } = useQurban();
+  const navigate = useNavigate();
 
   const [currentUserEmail, setCurrentUserEmail] = useState<string | null>(() => {
     if (typeof window !== "undefined") {
@@ -35,18 +39,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
     return null;
   });
+
   const [authError, setAuthError] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [pendingAuthEmail, setPendingAuthEmail] = useState<string | null>(null);
 
   const currentUser = useMemo<SystemUser | null>(() => {
-    if (!currentUserEmail) {
-      // Default to Super Admin while no session is active (pre-auth sprint)
-      return users.find((u) => u.role === "SUPER_ADMIN") ?? users[0] ?? null;
-    }
+    if (!currentUserEmail) return null;
+
     const matched = users.find(
-      (u) => u.email.trim().toLowerCase() === currentUserEmail.trim().toLowerCase(),
+      (u) =>
+        u.email.trim().toLowerCase() === currentUserEmail.trim().toLowerCase(),
     );
+
     if (!matched || matched.status === "NONAKTIF") return null;
+
     return matched;
   }, [users, currentUserEmail]);
 
@@ -61,7 +68,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const handleAuthenticateEmail = useCallback(
     (email: string): boolean => {
       setAuthError(null);
+
       const normalized = email.trim().toLowerCase();
+
       const matchedUser = users.find(
         (u) => u.email.trim().toLowerCase() === normalized,
       );
@@ -70,8 +79,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setAuthError(
           "Akun Anda belum terdaftar. Silakan hubungi Administrator.",
         );
+
         setCurrentUserEmail(null);
         localStorage.removeItem(AUTH_STORAGE_KEY);
+        setIsLoading(false);
+
         return false;
       }
 
@@ -79,8 +91,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setAuthError(
           "Akun Anda telah dinonaktifkan. Silakan hubungi Supervisor.",
         );
+
         setCurrentUserEmail(null);
         localStorage.removeItem(AUTH_STORAGE_KEY);
+        setIsLoading(false);
+
         return false;
       }
 
@@ -91,30 +106,70 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       setCurrentUserEmail(matchedUser.email);
       localStorage.setItem(AUTH_STORAGE_KEY, matchedUser.email);
+      setIsLoading(false);
+
+      // Login berhasil → masuk ke dashboard utama
+      navigate({ to: "/" });
+
       return true;
     },
-    [users, activateUser],
+    [users, activateUser, navigate],
   );
 
-  // Listen for Supabase OAuth callback (real Google sign-in flow)
+  /**
+   * Process a Google identity only after the Supabase-backed
+   * user list is ready.
+   */
+  useEffect(() => {
+    if (!usersLoaded || !pendingAuthEmail) return;
+
+    const email = pendingAuthEmail;
+
+    setPendingAuthEmail(null);
+
+    handleAuthenticateEmail(email);
+  }, [usersLoaded, pendingAuthEmail, handleAuthenticateEmail]);
+
+  /**
+   * Listen for Supabase OAuth callback and existing sessions
+   * after page reload.
+   */
   useEffect(() => {
     const { data: authListener } = supabase.auth.onAuthStateChange(
       (_event, session) => {
         if (session?.user?.email) {
-          handleAuthenticateEmail(session.user.email);
+          setPendingAuthEmail(session.user.email);
+          return;
         }
-        setIsLoading(false);
+
+        setCurrentUserEmail(null);
+        localStorage.removeItem(AUTH_STORAGE_KEY);
+
+        if (usersLoaded) {
+          setIsLoading(false);
+        }
       },
     );
 
     return () => {
       authListener?.subscription.unsubscribe();
     };
-  }, [handleAuthenticateEmail]);
+  }, [usersLoaded]);
+
+  /**
+   * If users have finished loading and there is no authenticated
+   * session, stop the loading state.
+   */
+  useEffect(() => {
+    if (usersLoaded && !pendingAuthEmail && !currentUserEmail) {
+      setIsLoading(false);
+    }
+  }, [usersLoaded, pendingAuthEmail, currentUserEmail]);
 
   const loginWithGoogle = useCallback(async () => {
     setAuthError(null);
     setIsLoading(true);
+
     try {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
@@ -122,50 +177,65 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           redirectTo: `${window.location.origin}/login`,
         },
       });
+
       if (error) {
-        // Supabase not configured yet (dev/staging without real credentials)
-        console.warn("Supabase Google OAuth not available:", error.message);
+        console.warn(
+          "Supabase Google OAuth not available:",
+          error.message,
+        );
+
         setAuthError(
           "Layanan autentikasi tidak tersedia. Pastikan konfigurasi Supabase sudah terpasang.",
         );
+
         setIsLoading(false);
       }
-      // If successful, the page will redirect — isLoading stays true intentionally
     } catch {
       setAuthError(
         "Gagal terhubung ke layanan autentikasi. Periksa koneksi internet dan coba lagi.",
       );
+
       setIsLoading(false);
     }
   }, []);
 
   /**
    * simulateGoogleLogin — dev/demo helper only.
-   * Simulates a resolved Google identity without going through Supabase OAuth.
+   * Simulates a resolved Google identity without going through
+   * Supabase OAuth.
    */
   const simulateGoogleLogin = useCallback(
     (email: string) => {
       setIsLoading(true);
       setAuthError(null);
-      // Small delay to surface the loading state visually
+
       setTimeout(() => {
-        handleAuthenticateEmail(email);
+        if (usersLoaded) {
+          handleAuthenticateEmail(email);
+        } else {
+          setPendingAuthEmail(email);
+        }
+
         setIsLoading(false);
       }, 500);
     },
-    [handleAuthenticateEmail],
+    [handleAuthenticateEmail, usersLoaded],
   );
 
   const logout = useCallback(async () => {
     setIsLoading(true);
+
     try {
       await supabase.auth.signOut();
     } catch (e) {
       console.warn("Supabase signOut error:", e);
     }
+
+    setPendingAuthEmail(null);
     setCurrentUserEmail(null);
     setAuthError(null);
     localStorage.removeItem(AUTH_STORAGE_KEY);
+
     setIsLoading(false);
   }, []);
 
@@ -191,11 +261,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     ],
   );
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider value={value}>
+      {children}
+    </AuthContext.Provider>
+  );
 }
 
 export function useAuth() {
   const context = useContext(AuthContext);
-  if (!context) throw new Error("useAuth must be used inside AuthProvider");
+
+  if (!context) {
+    throw new Error("useAuth must be used inside AuthProvider");
+  }
+
   return context;
 }

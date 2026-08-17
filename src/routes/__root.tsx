@@ -14,7 +14,7 @@ import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { AppShell } from "../components/layout/AppShell";
 import { QurbanProvider } from "../features/qurban/store";
-import { AuthProvider } from "../features/auth/AuthContext";
+import { AuthProvider, useAuth } from "../features/auth/AuthContext";
 import { Toaster } from "../components/ui/sonner";
 
 function NotFoundComponent() {
@@ -141,22 +141,50 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       <QurbanProvider>
         <AuthProvider>
-          {isLoginPage ? (
-            <>
-              <Outlet />
-              <Toaster position="bottom-right" />
-            </>
-          ) : (
-            <>
-              <AppShell>
-                {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-                <Outlet />
-              </AppShell>
-              <Toaster position="bottom-right" />
-            </>
-          )}
+          <AuthenticatedContent isLoginPage={isLoginPage} />
         </AuthProvider>
       </QurbanProvider>
     </QueryClientProvider>
+  );
+}
+
+function AuthenticatedContent({ isLoginPage }: { isLoginPage: boolean }) {
+  const { isAuthenticated, isLoading } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated && !isLoginPage) {
+      router.navigate({ to: "/login" });
+    }
+  }, [isLoading, isAuthenticated, isLoginPage, router]);
+
+  if (isLoading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        Memuat...
+      </div>
+    );
+  }
+
+  if (!isAuthenticated && !isLoginPage) {
+    return null;
+  }
+
+  if (isLoginPage) {
+    return (
+      <>
+        <Outlet />
+        <Toaster position="bottom-right" />
+      </>
+    );
+  }
+
+  return (
+    <>
+      <AppShell>
+        <Outlet />
+      </AppShell>
+      <Toaster position="bottom-right" />
+    </>
   );
 }
