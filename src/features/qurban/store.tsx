@@ -498,20 +498,19 @@ export function QurbanProvider({ children }: { children: ReactNode }) {
     (userId: string) => {
       const target = users.find((u) => u.id === userId);
       if (!target) return { success: false, message: "Pengguna tidak ditemukan." };
-      if (target.status !== "PENDING") return { success: true }; // already active
+      if (target.status !== "PENDING") return { success: true };
+
       setUsers((prev) =>
-        prev.map((u) => (u.id === userId ? { ...u, status: "AKTIF" as const } : u)),
+        prev.map((u) =>
+          u.id === userId ? { ...u, status: "AKTIF" as const } : u,
+        ),
       );
 
-      void supabase
-        .from("users")
-        .update({ status: "AKTIF" })
-        .eq("id", userId)
-        .then(({ error }) => {
-          if (error) {
-            console.error("Gagal mengaktifkan pengguna di Supabase:", error);
-          }
-        });
+      void supabase.rpc("activate_my_user").then(({ error }) => {
+        if (error) {
+          console.error("Gagal mengaktifkan pengguna di Supabase:", error);
+        }
+      });
 
       return { success: true };
     },
