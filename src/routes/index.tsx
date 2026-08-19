@@ -1,26 +1,49 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { OperationalBoard } from "@/features/qurban/components/OperationalBoard";
+
+import { Navbar } from "@/components/landing/Navbar";
+import { Hero } from "@/components/landing/Hero";
+import { ProblemSection } from "@/components/landing/ProblemSection";
+import { FeatureSection } from "@/components/landing/FeatureSection";
+import { OperationalBoardPreview } from "@/components/landing/OperationalBoardPreview";
+import { HowItWorks } from "@/components/landing/HowItWorks";
+import { TargetUsers } from "@/components/landing/TargetUsers";
+import { ProductPrinciples } from "@/components/landing/ProductPrinciples";
+import { FinalCTA } from "@/components/landing/FinalCTA";
+import { Footer } from "@/components/landing/Footer";
+
+const title = "QurbanOps — Qurban Operations Workspace";
+const description =
+  "QurbanOps membantu panitia mengelola hewan kurban, tim operasional, dan progres pekerjaan dalam satu workspace.";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Papan Operasional — QurbanOps" },
-      {
-        name: "description",
-        content:
-          "Live operational board tracking every animal through the Qurban processing pipeline.",
-      },
-      { property: "og:title", content: "Papan Operasional — QurbanOps" },
-      {
-        property: "og:description",
-        content:
-          "Track every animal through the Qurban processing pipeline in real time.",
-      },
+      { title },
+      { name: "description", content: description },
+      { property: "og:title", content: title },
+      { property: "og:description", content: description },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
-  component: BoardPage,
+  component: Index,
 });
 
-function BoardPage() {
-  return <OperationalBoard />;
+function Index() {
+  return (
+    <div className="min-h-screen bg-background">
+      <Navbar />
+      <main>
+        <Hero />
+        <ProblemSection />
+        <FeatureSection />
+        <OperationalBoardPreview />
+        <HowItWorks />
+        <TargetUsers />
+        <ProductPrinciples />
+        <FinalCTA />
+      </main>
+      <Footer />
+    </div>
+  );
 }
