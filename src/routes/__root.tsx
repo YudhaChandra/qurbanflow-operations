@@ -151,12 +151,14 @@ function RootComponent() {
 function AuthenticatedContent({ isLoginPage }: { isLoginPage: boolean }) {
   const { isAuthenticated, isLoading } = useAuth();
   const router = useRouter();
+  const isLandingPage = router.state.location.pathname === "/";
+  const isPublicPage = isLoginPage || isLandingPage;
 
   useEffect(() => {
-    if (!isLoading && !isAuthenticated && !isLoginPage) {
+    if (!isLoading && !isAuthenticated && !isPublicPage) {
       router.navigate({ to: "/login" });
     }
-  }, [isLoading, isAuthenticated, isLoginPage, router]);
+  }, [isLoading, isAuthenticated, isPublicPage, router]);
 
   if (isLoading) {
     return (
@@ -166,11 +168,11 @@ function AuthenticatedContent({ isLoginPage }: { isLoginPage: boolean }) {
     );
   }
 
-  if (!isAuthenticated && !isLoginPage) {
+  if (!isAuthenticated && !isPublicPage) {
     return null;
   }
 
-  if (isLoginPage) {
+  if (isLoginPage || isLandingPage) {
     return (
       <>
         <Outlet />
