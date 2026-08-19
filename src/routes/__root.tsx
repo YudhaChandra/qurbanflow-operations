@@ -155,8 +155,15 @@ function AuthenticatedContent({ isLoginPage }: { isLoginPage: boolean }) {
   const isPublicPage = isLoginPage || isLandingPage;
 
   useEffect(() => {
-    if (!isLoading && !isAuthenticated && !isPublicPage) {
-      router.navigate({ to: "/login" });
+    if (isLoading) return;
+
+    if (isAuthenticated && isPublicPage) {
+      router.navigate({ to: "/operational" });
+      return;
+    }
+
+    if (!isAuthenticated && !isPublicPage) {
+      router.navigate({ to: "/" });
     }
   }, [isLoading, isAuthenticated, isPublicPage, router]);
 
